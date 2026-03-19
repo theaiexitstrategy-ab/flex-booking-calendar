@@ -385,6 +385,7 @@
     </div>
   </div>
   <div class="drawer-input-row">
+    <button id="mic-btn" onclick="toggleVoice()" title="Start voice call" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><rect x="9" y="1" width="6" height="11" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
     <input type="text" class="drawer-input" id="drawer-in" placeholder="Ask FLEX anything..." onkeydown="if(event.key==='Enter')sendMsg()"/>
     <button class="drawer-send" onclick="sendMsg()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
   </div>
@@ -404,7 +405,20 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.umd.js"></script>
 <script>
+// ===========================================
+// CONFIGURATION — UPDATE THESE VALUES
+// ===========================================
+const VAPI_PUBLIC_KEY  = '';  // ← Paste your Vapi PUBLIC key here (from dashboard.vapi.ai → Organization → API Keys)
+const VAPI_ASSISTANT_ID = 'a04cb686-85ce-4b37-b529-6f5dfb812edf';
+
+const MAKE_WEBHOOKS = {
+  booking:      '',  // ← Paste your Make.com "New Booking" webhook URL
+  reschedule:   '',  // ← Paste your Make.com "Reschedule" webhook URL
+  cancellation: '',  // ← Paste your Make.com "Cancellation" webhook URL
+};
+
 // ===========================================
 // SCHEDULE CONFIGURATION
 // All times use 12-hour format. dow = day of week (0=Sun...6=Sat)
@@ -648,7 +662,261 @@ function changeMonth(dir) {
 }
 
 // ===========================================
-// BOOKING SUBMIT
+// EXPOSED API FUNCTIONS — Vapi tools call these
+// ===========================================
+
+/**
+ * check_availability — Vapi tool
+ * Params: { session_type?: string, date?: string (YYYY-MM-DD) }
+ * Returns available slots for a specific date or the full weekly schedule.
+ */
+function checkAvailability(params) {
+  const type = (params.session_type || selType).toLowerCase();
+  const s = SESSIONS[type];
+  if (!s) return { error: 'Invalid session type. Valid types: athlete, lifestyle, bodybuilding' };
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  if (params.date) {
+    const dt = new Date(params.date + 'T12:00:00');
+    const dow = dt.getDay();
+    const today = new Date(); today.setHours(0,0,0,0);
+    dt.setHours(0,0,0,0);
+    if (dt < today) return { session_type: type, date: params.date, available_slots: [], note: 'This date is in the past.' };
+    const slots = (s.schedule[dow] || []).filter(sl => !isFull(sl)).map(sl => ({
+      time: sl.time,
+      spots_left: s.maxPerSlot ? s.maxPerSlot - sl.booked : 'unlimited'
+    }));
+    return { session_type: type, session_name: s.name, date: params.date, day_of_week: days[dow], available_slots: slots, total_available: slots.length };
+  }
+
+  // No date → return full weekly schedule
+  const schedule = {};
+  for (let dow = 0; dow < 7; dow++) {
+    const avail = (s.schedule[dow] || []).filter(sl => !isFull(sl)).map(sl => ({
+      time: sl.time,
+      spots_left: s.maxPerSlot ? s.maxPerSlot - sl.booked : 'unlimited'
+    }));
+    schedule[days[dow]] = avail.length ? avail : 'No sessions';
+  }
+  return { session_type: type, session_name: s.name, weekly_schedule: schedule };
+}
+
+/**
+ * book_appointment — Vapi tool
+ * Params: { session_type, date (YYYY-MM-DD), time, name, phone, email, age?, sport?, goal?, guardian?, instagram? }
+ * Validates, books the slot, fires Make.com webhook, returns confirmation.
+ */
+function bookAppointment(params) {
+  const { date, time, name, phone, email } = params;
+  if (!name || !phone || !email) return { success: false, error: 'Missing required fields: name, phone, and email.' };
+  if (!date || !time) return { success: false, error: 'Missing required fields: date and time.' };
+
+  const type = (params.session_type || selType).toLowerCase();
+  const s = SESSIONS[type];
+  if (!s) return { success: false, error: 'Invalid session type. Valid: athlete, lifestyle, bodybuilding.' };
+
+  const dt = new Date(date + 'T12:00:00');
+  const dow = dt.getDay();
+  const today = new Date(); today.setHours(0,0,0,0); dt.setHours(0,0,0,0);
+  if (dt < today) return { success: false, error: 'Cannot book a date in the past.' };
+
+  const slots = s.schedule[dow] || [];
+  const slot = slots.find(sl => sl.time === time);
+  if (!slot) return { success: false, error: `No ${time} slot on that day for ${s.name}. Use check_availability to see open times.` };
+  if (isFull(slot)) return { success: false, error: `The ${time} slot is full. Use check_availability to find open times.` };
+
+  // Book it
+  slot.booked++;
+
+  const booking = {
+    booking_id: 'FLX-' + Date.now().toString(36).toUpperCase(),
+    session_type: type,
+    session_name: s.fullName,
+    date, time, name, phone, email,
+    age: params.age || '',
+    sport: params.sport || '',
+    goal: params.goal || '',
+    guardian: params.guardian || '',
+    instagram: params.instagram || '',
+    source: params._source || 'vapi-assistant',
+    status: 'confirmed',
+    timestamp: new Date().toISOString()
+  };
+
+  // Fire Make.com webhook (non-blocking)
+  fireWebhook('booking', booking);
+
+  // Refresh calendar UI
+  renderCalendar();
+
+  return {
+    success: true,
+    booking_id: booking.booking_id,
+    confirmation: `Booked! ${s.name} on ${date} at ${time} for ${name}. A confirmation text will be sent to ${phone}.`
+  };
+}
+
+// ===========================================
+// MAKE.COM WEBHOOK INTEGRATION
+// ===========================================
+
+/**
+ * Fires a webhook to Make.com. Silently logs if no URL is configured.
+ *
+ * ── MAKE.COM SCENARIO SETUP GUIDE ──
+ *
+ * SCENARIO 1 — "New Booking" (booking webhook)
+ *   Trigger: Custom Webhook → receives JSON below
+ *   Step 2: Airtable → Create Record in "Bookings" table
+ *   Step 3: Airtable → Create/Update Record in "Leads" table (upsert on phone or email)
+ *   Step 4: Twilio → Send SMS confirmation to client
+ *   Step 5: Delay → 24 hours before appointment
+ *   Step 6: Twilio → Send SMS reminder to client
+ *
+ *   WEBHOOK PAYLOAD — booking:
+ *   {
+ *     "booking_id":    "FLX-M4X7K9",
+ *     "session_type":  "athlete",
+ *     "session_name":  "Free Athlete Performance Assessment",
+ *     "date":          "2026-03-22",
+ *     "time":          "8:30 AM",
+ *     "name":          "Marcus Johnson",
+ *     "phone":         "+13145551234",
+ *     "email":         "marcus@example.com",
+ *     "age":           "17",
+ *     "sport":         "Football",
+ *     "goal":          "Improve speed & agility",
+ *     "guardian":       "Tina Johnson",
+ *     "instagram":     "@marcusj",
+ *     "source":        "booking-calendar",   ← or "vapi-assistant"
+ *     "status":        "confirmed",
+ *     "timestamp":     "2026-03-19T14:30:00.000Z"
+ *   }
+ *
+ *   TWILIO SMS CONFIRMATION (Step 4 message body):
+ *     "✅ You're booked! {{name}}, your {{session_name}} with Coach Kenny is confirmed for {{date}} at {{time}}.
+ *      📍 4132 Shore Line Dr, Earth City, MO 63045
+ *      Reply RESCHEDULE to change your time. — The FLEX Facility (1-877-515-3539)"
+ *
+ *   TWILIO SMS REMINDER (Step 6 — use Make.com's Schedule or Delay module):
+ *     "⏰ Reminder: {{name}}, your {{session_name}} is TOMORROW at {{time}}.
+ *      📍 4132 Shore Line Dr, Earth City, MO 63045
+ *      Reply RESCHEDULE to change. — The FLEX Facility"
+ *
+ *   AIRTABLE "Bookings" TABLE FIELD MAPPING:
+ *     booking_id → Booking ID (Primary)
+ *     session_type → Session Type (Single Select)
+ *     session_name → Session Name (Single Line)
+ *     date → Date (Date)
+ *     time → Time (Single Line)
+ *     name → Client Name (Single Line)
+ *     phone → Phone (Phone)
+ *     email → Email (Email)
+ *     age → Age (Number)
+ *     sport → Sport (Single Line)
+ *     goal → Goal (Single Select)
+ *     guardian → Guardian (Single Line)
+ *     instagram → Instagram (Single Line)
+ *     source → Source (Single Select: booking-calendar, vapi-assistant)
+ *     status → Status (Single Select: confirmed, rescheduled, cancelled)
+ *     timestamp → Created At (Date+Time)
+ *
+ *   AIRTABLE "Leads" TABLE FIELD MAPPING:
+ *     name → Name (Primary)
+ *     phone → Phone (Phone)
+ *     email → Email (Email)
+ *     age → Age (Number)
+ *     sport → Sport (Single Line)
+ *     goal → Goal (Single Select)
+ *     guardian → Guardian (Single Line)
+ *     instagram → Instagram (Single Line)
+ *     source → First Source (Single Select)
+ *     total_bookings → Total Bookings (Number — increment on each booking)
+ *     last_booking → Last Booking Date (Date)
+ *     status → Lead Status (Single Select: new, active, rescheduled, cancelled)
+ *
+ * SCENARIO 2 — "Reschedule" (reschedule webhook)
+ *   Trigger: Custom Webhook → receives JSON below
+ *   Step 2: Airtable → Search "Bookings" by booking_id
+ *   Step 3: Airtable → Update Record → set new date/time, status = "rescheduled"
+ *   Step 4: Twilio → Send SMS confirming new time
+ *
+ *   WEBHOOK PAYLOAD — reschedule:
+ *   {
+ *     "booking_id":  "FLX-M4X7K9",
+ *     "old_date":    "2026-03-22",
+ *     "old_time":    "8:30 AM",
+ *     "new_date":    "2026-03-23",
+ *     "new_time":    "7:00 PM",
+ *     "phone":       "+13145551234",
+ *     "source":      "vapi-assistant",
+ *     "timestamp":   "2026-03-20T10:00:00.000Z"
+ *   }
+ *
+ * SCENARIO 3 — "Cancellation" (cancellation webhook)
+ *   Trigger: Custom Webhook → receives JSON below
+ *   Step 2: Airtable → Update "Bookings" → status = "cancelled"
+ *   Step 3: Airtable → Update "Leads" → status = "cancelled"
+ *   Step 4: Twilio → Send SMS confirming cancellation
+ *
+ *   WEBHOOK PAYLOAD — cancellation:
+ *   {
+ *     "booking_id":  "FLX-M4X7K9",
+ *     "phone":       "+13145551234",
+ *     "reason":      "schedule conflict",
+ *     "source":      "vapi-assistant",
+ *     "timestamp":   "2026-03-20T10:00:00.000Z"
+ *   }
+ *
+ * ── INBOUND SMS RESCHEDULE FLOW (Twilio → Make.com) ──
+ *
+ *   1. In Twilio Console → Phone Numbers → 1-877-515-3539:
+ *      Set "A MESSAGE COMES IN" webhook to a NEW Make.com webhook URL
+ *
+ *   2. Make.com "Inbound SMS" Scenario:
+ *      Trigger:  Custom Webhook (receives Twilio POST: From, Body, To)
+ *      Step 2:   Router — branch on message body content:
+ *
+ *      Branch A — Body contains "RESCHEDULE":
+ *        Step 3: Airtable → Search "Bookings" where phone = {{From}} AND status = "confirmed"
+ *        Step 4: HTTP → POST to Vapi API to start conversation (or reply via Twilio asking for new date/time)
+ *        Step 5: Twilio → Send SMS: "Sure! When would you like to reschedule?
+ *                 Reply with your preferred day and time (e.g. 'Monday 7 PM')."
+ *        Step 6: (On next inbound) Parse new date/time from Body
+ *        Step 7: HTTP → POST to reschedule webhook with { booking_id, new_date, new_time, phone }
+ *        Step 8: Twilio → Send SMS: "Done! Your session is now on {{new_date}} at {{new_time}}. See you there! 💪"
+ *
+ *      Branch B — Body contains "CANCEL":
+ *        Step 3: Airtable → Search "Bookings" where phone = {{From}} AND status = "confirmed"
+ *        Step 4: HTTP → POST to cancellation webhook
+ *        Step 5: Twilio → Send SMS: "Your session has been cancelled. Book again anytime at book.theflexfacility.com"
+ *
+ *      Branch C — Any other message:
+ *        Step 3: Twilio → Send SMS: "Thanks for your message! To reschedule, reply RESCHEDULE.
+ *                 To cancel, reply CANCEL. Questions? Call 1-877-515-3539."
+ */
+async function fireWebhook(type, data) {
+  const url = MAKE_WEBHOOKS[type];
+  if (!url) {
+    console.warn(`[FLEX] No Make.com webhook URL for "${type}". Set MAKE_WEBHOOKS.${type} in the config section.`);
+    console.log(`[FLEX] Webhook payload (${type}):`, JSON.stringify(data, null, 2));
+    return;
+  }
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) console.error(`[FLEX] Webhook ${type} returned ${res.status}`);
+    else console.log(`[FLEX] Webhook ${type} fired successfully`);
+  } catch (err) {
+    console.error(`[FLEX] Webhook ${type} error:`, err);
+  }
+}
+
+// ===========================================
+// BOOKING SUBMIT (Calendar UI form)
 // ===========================================
 function submitBooking() {
   const name = document.getElementById('f-name').value.trim();
@@ -658,11 +926,12 @@ function submitBooking() {
   if (!selDate || !selTime) { alert('Please select a date and time for your session.'); return; }
 
   const s = SESSIONS[selType];
-  const mo = MOS[selDate.m];
-  const payload = {
+  const isoDate = `${selDate.y}-${String(selDate.m + 1).padStart(2, '0')}-${String(selDate.d).padStart(2, '0')}`;
+
+  // Use the shared bookAppointment function
+  const result = bookAppointment({
     session_type: selType,
-    session_name: s.fullName,
-    date: `${mo} ${selDate.d}, ${selDate.y}`,
+    date: isoDate,
     time: selTime,
     name, phone, email,
     age: document.getElementById('f-age').value,
@@ -670,19 +939,12 @@ function submitBooking() {
     goal: document.getElementById('f-goal').value,
     guardian: document.getElementById('f-guardian').value,
     instagram: document.getElementById('f-ig').value,
-    source: 'booking-calendar',
-    timestamp: new Date().toISOString()
-  };
+    _source: 'booking-calendar'
+  });
 
-  console.log('Booking payload:', payload);
+  if (!result.success) { alert(result.error); return; }
 
-  // TODO: wire to your Make.com webhook:
-  // fetch('https://hook.us2.make.com/YOUR_BOOKING_WEBHOOK', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(payload)
-  // });
-
+  const mo = MOS[selDate.m];
   document.getElementById('success-msg').textContent =
     `Your ${s.name} on ${mo} ${selDate.d} at ${selTime} is confirmed! Coach Kenny's team will reach out shortly. Check your phone for a confirmation text.`;
   document.getElementById('success-overlay').classList.add('show');
@@ -706,9 +968,12 @@ function addToCalendar(type) {
 }
 
 // ===========================================
-// AI DRAWER
+// AI DRAWER — Vapi Voice + Text Fallback
 // ===========================================
 let aiOpen = false;
+let vapiInstance = null;
+let vapiCallActive = false;
+
 function toggleAI() {
   aiOpen = !aiOpen;
   document.getElementById('ai-drawer').classList.toggle('open', aiOpen);
@@ -716,18 +981,139 @@ function toggleAI() {
   if (aiOpen) setTimeout(() => document.getElementById('drawer-in').focus(), 300);
 }
 
+// ── Vapi SDK Initialization ──
+function initVapi() {
+  if (!VAPI_PUBLIC_KEY) {
+    console.warn('[FLEX] VAPI_PUBLIC_KEY not set — voice AI disabled, using text fallback.');
+    return;
+  }
+  if (typeof Vapi === 'undefined') {
+    console.warn('[FLEX] Vapi SDK not loaded — using text fallback.');
+    return;
+  }
+  try {
+    vapiInstance = new Vapi(VAPI_PUBLIC_KEY);
+  } catch (e) {
+    console.error('[FLEX] Vapi init failed:', e);
+    return;
+  }
+
+  vapiInstance.on('call-start', () => {
+    vapiCallActive = true;
+    updateMicBtn(true);
+    addMsg('Voice connected — speak naturally, I can hear you.', 'assistant');
+  });
+
+  vapiInstance.on('call-end', () => {
+    vapiCallActive = false;
+    updateMicBtn(false);
+    addMsg('Voice call ended. Tap the mic to reconnect or type your question.', 'assistant');
+  });
+
+  vapiInstance.on('message', (msg) => {
+    // Handle tool calls from the Vapi assistant
+    if (msg.type === 'function-call' || msg.type === 'tool-calls') {
+      handleVapiToolCalls(msg);
+    }
+    // Show assistant speech transcripts in chat
+    if (msg.type === 'transcript' && msg.transcriptType === 'final' && msg.role === 'assistant') {
+      addMsg(msg.transcript, 'assistant');
+    }
+  });
+
+  vapiInstance.on('error', (err) => {
+    console.error('[FLEX] Vapi error:', err);
+    vapiCallActive = false;
+    updateMicBtn(false);
+  });
+
+  console.log('[FLEX] Vapi initialized with assistant:', VAPI_ASSISTANT_ID);
+}
+
+function handleVapiToolCalls(msg) {
+  const calls = msg.toolCalls || (msg.functionCall ? [{ id: msg.toolCallId, function: msg.functionCall }] : []);
+  calls.forEach(tc => {
+    const fnName = tc.function?.name || tc.functionCall?.name;
+    const args = typeof (tc.function?.arguments || tc.functionCall?.parameters) === 'string'
+      ? JSON.parse(tc.function?.arguments || tc.functionCall?.parameters)
+      : (tc.function?.arguments || tc.functionCall?.parameters || {});
+    let result;
+
+    if (fnName === 'check_availability') {
+      result = checkAvailability(args);
+    } else if (fnName === 'book_appointment') {
+      result = bookAppointment(args);
+      if (result.success) {
+        // Show success overlay in the UI too
+        document.getElementById('success-msg').textContent = result.confirmation;
+        document.getElementById('success-overlay').classList.add('show');
+      }
+    } else {
+      result = { error: 'Unknown tool: ' + fnName };
+    }
+
+    // Send result back to Vapi
+    if (vapiInstance) {
+      vapiInstance.send({
+        type: 'add-message',
+        message: { role: 'tool', toolCallId: tc.id, content: JSON.stringify(result) }
+      });
+    }
+    console.log(`[FLEX] Vapi tool "${fnName}" →`, result);
+  });
+}
+
+// ── Voice toggle ──
+function toggleVoice() {
+  if (!vapiInstance) {
+    addMsg('Voice AI is not configured yet. Ask the site admin to add the Vapi public key.', 'assistant');
+    return;
+  }
+  if (vapiCallActive) {
+    vapiInstance.stop();
+  } else {
+    if (!aiOpen) toggleAI();
+    addMsg('Connecting to voice...', 'assistant');
+    vapiInstance.start(VAPI_ASSISTANT_ID);
+  }
+}
+
+function updateMicBtn(active) {
+  const btn = document.getElementById('mic-btn');
+  if (btn) {
+    btn.style.background = active ? 'var(--accent-red)' : 'rgba(255,255,255,0.08)';
+    btn.title = active ? 'End voice call' : 'Start voice call';
+    btn.querySelector('svg').setAttribute('stroke', active ? 'white' : 'var(--muted)');
+  }
+}
+
+// ── Text chat (fallback + Vapi text) ──
 function sendMsg() {
   const inp = document.getElementById('drawer-in');
   const txt = inp.value.trim(); if (!txt) return;
   inp.value = '';
-  addMsg(txt, 'user'); showTyping();
-  setTimeout(() => { removeTyping(); addMsg(aiReply(txt), 'assistant'); }, 1000 + Math.random() * 600);
+  addMsg(txt, 'user');
+
+  // If Vapi voice call is active, send text through Vapi
+  if (vapiCallActive && vapiInstance) {
+    vapiInstance.send({ type: 'add-message', message: { role: 'user', content: txt } });
+    return;
+  }
+
+  // Otherwise use local text fallback
+  showTyping();
+  setTimeout(() => { removeTyping(); addMsg(aiReplyLocal(txt), 'assistant'); }, 800 + Math.random() * 500);
 }
 
 function sq(txt) {
   const qr = document.querySelector('.quick-replies'); if (qr) qr.remove();
-  addMsg(txt, 'user'); showTyping();
-  setTimeout(() => { removeTyping(); addMsg(aiReply(txt), 'assistant'); }, 900 + Math.random() * 400);
+  addMsg(txt, 'user');
+  if (vapiCallActive && vapiInstance) {
+    vapiInstance.send({ type: 'add-message', message: { role: 'user', content: txt } });
+    return;
+  }
+  showTyping();
+  setTimeout(() => { removeTyping(); addMsg(aiReplyLocal(txt), 'assistant'); }, 700 + Math.random() * 400);
 }
 
 function addMsg(text, role) {
@@ -744,33 +1130,59 @@ function showTyping() {
 }
 function removeTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
 
-function aiReply(msg) {
+/**
+ * Local text fallback — used when Vapi voice is not active.
+ * Enhanced to call the same checkAvailability/bookAppointment functions.
+ */
+function aiReplyLocal(msg) {
   const m = msg.toLowerCase();
+
+  // Availability queries → use real data via checkAvailability
+  if (m.includes('available') || m.includes('open') || m.includes('slot') || m.includes('spot')) {
+    let type = 'athlete';
+    if (m.includes('lifestyle') || m.includes('physique')) type = 'lifestyle';
+    if (m.includes('bodybuilding') || m.includes('bb')) type = 'bodybuilding';
+    const data = checkAvailability({ session_type: type });
+    const sched = data.weekly_schedule;
+    let reply = `<b>${data.session_name} — Available Slots:</b><br>`;
+    for (const [day, slots] of Object.entries(sched)) {
+      if (slots === 'No sessions') { reply += `${day}: —<br>`; }
+      else { reply += `${day}: ${slots.map(s => s.time + (s.spots_left !== 'unlimited' ? ` (${s.spots_left} left)` : '')).join(', ')}<br>`; }
+    }
+    return reply;
+  }
+
   if (m.includes('schedule') || m.includes('time') || m.includes('when') || m.includes('hour') || m.includes('all')) {
-    return '<b>Athlete Assessment:</b> Sun 8:30 AM · Mon–Wed 7:00 PM (max 10 spots) 💪🏾<br><br><b>Physique & Lifestyle / Bodybuilding (Group):</b><br>Sun: 9:30 AM<br>Mon: 4, 5, 6 PM<br>Tue/Thu: 7:30, 8:00 AM<br>Wed: 5, 6 PM<br>Fri: 7:30, 8:30, 9:00 AM<br>Sat: 7, 8, 9 AM';
+    return '<b>Athlete Assessment:</b> Sun 8:30 AM · Mon–Wed 7:00 PM (max 10 spots)<br><br><b>Physique & Lifestyle / Bodybuilding (Group):</b><br>Sun: 9:30 AM<br>Mon: 4, 5, 6 PM<br>Tue/Thu: 7:30, 8:00 AM<br>Wed: 5, 6 PM<br>Fri: 7:30, 8:30, 9:00 AM<br>Sat: 7, 8, 9 AM';
   }
   if (m.includes('book') || m.includes('assessment') || m.includes('sign up') || m.includes('reserve')) {
-    return "Simple! Pick your session type at the top, tap a gold date, choose a time slot, fill in your info, and done. The whole thing takes 2 minutes. Athlete Assessments are 100% free 💪🏾";
+    return "Pick your session type at the top, tap a gold date, choose a time slot, fill in your info, and done. The whole thing takes 2 minutes. Athlete Assessments are 100% free. Or tap the mic icon to book by voice!";
   }
   if (m.includes('athlete') || m.includes('sport') || m.includes('performance') || m.includes('free')) {
     return "The Athlete Assessment is a free 60-min 1-on-1 with Coach Kenny — movement screening, strength evaluation, and your personal training plan. Available Sun 8:30 AM and Mon–Wed at 7 PM. Only 10 spots per session so grab yours early!";
   }
   if (m.includes('lifestyle') || m.includes('physique') || m.includes('body comp') || m.includes('weight') || m.includes('fat')) {
-    return "Physique & Lifestyle is group training focused on body composition, nutrition, and sustainable results for adults. Sessions run every day of the week — multiple time slots available. Great for anyone who wants to look and feel their best long-term.";
+    return "Physique & Lifestyle is group training focused on body composition, nutrition, and sustainable results for adults. Sessions run every day of the week — multiple time slots available.";
   }
   if (m.includes('bodybuilding') || m.includes('compete') || m.includes('stage') || m.includes('posing') || m.includes('contest')) {
-    return "The Bodybuilding track is for competitive athletes and serious builders. Coach Kenny covers posing, periodization, and peak week protocols. Group sessions run daily — same schedule as the Physique & Lifestyle sessions. Pick your slot and let's build! 💪🏾";
+    return "The Bodybuilding track is for competitive athletes and serious builders. Coach Kenny covers posing, periodization, and peak week protocols. Group sessions run daily — same schedule as the Physique & Lifestyle sessions.";
   }
   if (m.includes('price') || m.includes('cost') || m.includes('how much') || m.includes('membership')) {
-    return "The Athlete Assessment is completely FREE — no catch. Group session pricing (Physique & Lifestyle / Bodybuilding) is discussed after your first visit based on your goals and schedule. No pressure, no hard sell.";
+    return "The Athlete Assessment is completely FREE — no catch. Group session pricing is discussed after your first visit based on your goals and schedule. No pressure, no hard sell.";
   }
   if (m.includes('location') || m.includes('address') || m.includes('where') || m.includes('directions')) {
-    return `4132 Shore Line Dr, Earth City, MO 63045. Easy highway access, good parking. <a href="https://maps.google.com/?q=4132+Shore+Line+Dr+Earth+City+MO" target="_blank" style="color:var(--accent-gold)">Get Directions →</a>`;
+    return '4132 Shore Line Dr, Earth City, MO 63045. Easy highway access, good parking. <a href="https://maps.google.com/?q=4132+Shore+Line+Dr+Earth+City+MO" target="_blank" style="color:var(--accent-gold)">Get Directions</a>';
   }
   if (m.includes('kenny') || m.includes('coach') || m.includes('trainer')) {
     return "Coach Kenny Sims is the founder of The FLEX Facility. He brings elite-level sports performance methodology to athletes at every level — from youth to collegiate. His coaching is results-first, athlete-centered, and built on real science.";
   }
-  return "Good question 💪🏾 For anything specific, the best move is locking in your free Athlete Assessment — Coach Kenny will answer everything in person. Want help picking a time on the calendar?";
+  if (m.includes('reschedule') || m.includes('change') || m.includes('move my')) {
+    return "To reschedule, reply RESCHEDULE to your confirmation text, or call 1-877-515-3539. You can also book a new slot right here on the calendar!";
+  }
+  if (m.includes('cancel')) {
+    return "To cancel, reply CANCEL to your confirmation text, or call 1-877-515-3539. We hope to see you soon!";
+  }
+  return "Great question! For anything specific, the best move is locking in your free Athlete Assessment — Coach Kenny will answer everything in person. Want help picking a time on the calendar?";
 }
 
 // ===========================================
@@ -778,6 +1190,7 @@ function aiReply(msg) {
 // ===========================================
 renderInfo('athlete');
 renderCalendar();
+initVapi();
 setTimeout(() => { document.getElementById('ai-notif').style.display = 'flex'; }, 8000);
 </script>
 </body>
