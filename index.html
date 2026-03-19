@@ -666,7 +666,7 @@ function changeMonth(dir) {
 // ===========================================
 
 /**
- * check_availability — Vapi tool
+ * check_flex_avail_tool — Vapi tool
  * Params: { session_type?: string, date?: string (YYYY-MM-DD) }
  * Returns available slots for a specific date or the full weekly schedule.
  */
@@ -702,7 +702,7 @@ function checkAvailability(params) {
 }
 
 /**
- * book_appointment — Vapi tool
+ * book_flex_appt_tool — Vapi tool
  * Params: { session_type, date (YYYY-MM-DD), time, name, phone, email, age?, sport?, goal?, guardian?, instagram? }
  * Validates, books the slot, fires Make.com webhook, returns confirmation.
  */
@@ -722,8 +722,8 @@ function bookAppointment(params) {
 
   const slots = s.schedule[dow] || [];
   const slot = slots.find(sl => sl.time === time);
-  if (!slot) return { success: false, error: `No ${time} slot on that day for ${s.name}. Use check_availability to see open times.` };
-  if (isFull(slot)) return { success: false, error: `The ${time} slot is full. Use check_availability to find open times.` };
+  if (!slot) return { success: false, error: `No ${time} slot on that day for ${s.name}. Use check_flex_avail_tool to see open times.` };
+  if (isFull(slot)) return { success: false, error: `The ${time} slot is full. Use check_flex_avail_tool to find open times.` };
 
   // Book it
   slot.booked++;
@@ -1039,9 +1039,9 @@ function handleVapiToolCalls(msg) {
       : (tc.function?.arguments || tc.functionCall?.parameters || {});
     let result;
 
-    if (fnName === 'check_availability') {
+    if (fnName === 'check_flex_avail_tool') {
       result = checkAvailability(args);
-    } else if (fnName === 'book_appointment') {
+    } else if (fnName === 'book_flex_appt_tool') {
       result = bookAppointment(args);
       if (result.success) {
         // Show success overlay in the UI too
