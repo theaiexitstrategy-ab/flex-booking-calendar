@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Your Session — The FLEX Facility</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a; --off-black: #111111; --card-bg: #161616;
+    --border: #2a2a2a; --border-light: #333333;
+    --white: #ffffff; --off-white: #f0f0f0; --muted: #888888;
+    --accent-gold: #c9a84c; --accent-red: #e03030; --text: #e8e8e8;
+    --success: #22c55e; --radius: 12px; --radius-sm: 8px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--black); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+
+  /* HEADER */
+  header { position: sticky; top: 0; z-index: 100; background: rgba(10,10,10,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+  .logo-wrap { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+  .logo-icon { width: 38px; height: 38px; background: var(--white); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-icon svg { width: 22px; height: 22px; }
+  .logo-text { display: flex; flex-direction: column; line-height: 1; }
+  .logo-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--white); letter-spacing: 2px; }
+  .logo-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+  .header-badge { display: flex; align-items: center; gap: 8px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--success); font-weight: 600; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+  /* HERO */
+  .hero { padding: 60px 32px 40px; max-width: 1100px; margin: 0 auto; }
+  .hero-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 4px; color: var(--accent-gold); text-transform: uppercase; margin-bottom: 12px; }
+  .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 7vw, 88px); line-height: 0.9; color: var(--white); letter-spacing: 2px; }
+  .hero-title span { color: var(--accent-gold); }
+  .hero-desc { margin-top: 18px; font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.6; font-weight: 300; }
+  .hero-stats { display: flex; gap: 32px; margin-top: 32px; flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--white); letter-spacing: 1px; }
+  .stat-label { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+  /* SESSION CARDS */
+  .session-types { max-width: 1100px; margin: 0 auto 36px; padding: 0 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .session-card { background: var(--card-bg); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 22px 20px; cursor: pointer; transition: all 0.25s ease; position: relative; overflow: hidden; }
+  .session-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 60%); opacity: 0; transition: opacity 0.3s; }
+  .session-card:hover::before, .session-card.active::before { opacity: 1; }
+  .session-card:hover { border-color: var(--border-light); transform: translateY(-2px); }
+  .session-card.active { border-color: var(--accent-gold); background: rgba(201,168,76,0.06); }
+  .session-card.active .session-name { color: var(--accent-gold); }
+  .session-tag { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
+  .session-tag.athlete { background: rgba(224,48,48,0.15); color: var(--accent-red); }
+  .session-tag.lifestyle { background: rgba(99,102,241,0.15); color: #818cf8; }
+  .session-tag.body { background: rgba(201,168,76,0.15); color: var(--accent-gold); }
+  .session-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1.5px; color: var(--white); margin-bottom: 6px; transition: color 0.2s; }
+  .session-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .session-duration { margin-top: 14px; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 500; }
+  .capacity-badge { margin-top: 10px; display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--muted); }
+  .capacity-badge.warn { border-color: rgba(201,168,76,0.4); color: var(--accent-gold); }
+  .capacity-badge.full-badge { border-color: rgba(224,48,48,0.4); color: var(--accent-red); }
+  .check-mark { position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 12px; }
+  .session-card.active .check-mark { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--black); }
+
+  /* INTEGRATIONS */
+  .integrations-bar { max-width: 1100px; margin: 0 auto 32px; padding: 0 32px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .int-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .int-badge { display: flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; color: var(--muted); font-weight: 500; }
+  .int-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+  /* CALENDAR LAYOUT */
+  .calendar-container { max-width: 1100px; margin: 0 auto; padding: 0 32px 60px; display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
+  .calendar-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .panel-header { padding: 22px 26px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .panel-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--white); }
+  .panel-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .cal-nav { display: flex; align-items: center; gap: 16px; }
+  .cal-nav-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .cal-nav-btn:hover { background: var(--border); color: var(--white); }
+  .cal-month { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600; color: var(--white); letter-spacing: 2px; text-transform: uppercase; min-width: 160px; text-align: center; }
+  .cal-grid { padding: 20px 26px 24px; }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
+  .cal-weekday { text-align: center; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; padding: 6px 0; }
+  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.18s; position: relative; color: var(--text); border: 1px solid transparent; }
+  .cal-day:hover:not(.empty):not(.past):not(.no-slots) { background: rgba(255,255,255,0.08); border-color: var(--border); }
+  .cal-day.past { color: #3a3a3a; cursor: default; }
+  .cal-day.empty { cursor: default; }
+  .cal-day.no-slots { color: #444; cursor: default; }
+  .cal-day.has-slots::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--accent-gold); }
+  .cal-day.selected { background: var(--white) !important; color: var(--black) !important; font-weight: 700; border-color: var(--white) !important; }
+  .cal-day.today { border-color: var(--accent-gold); color: var(--accent-gold); font-weight: 700; }
+
+  /* SCHEDULE INFO */
+  .info-panel { padding: 20px 26px 26px; border-top: 1px solid var(--border); }
+  .schedule-info { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .schedule-info-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .schedule-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .schedule-row:last-child { border-bottom: none; }
+  .schedule-row .sday { color: var(--text); font-weight: 500; }
+  .schedule-row .stime { color: var(--accent-gold); font-weight: 600; font-size: 12px; }
+  .schedule-row .stime.none { color: #444; font-weight: 400; }
+  .schedule-note { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.5; font-style: italic; }
+
+  /* TIME SLOTS */
+  .slots-section { padding: 20px 26px 26px; border-top: 1px solid var(--border); }
+  .slots-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .slots-title { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+  .slots-cap { font-size: 12px; color: var(--muted); }
+  .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .time-slot { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 8px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 600; color: var(--text); position: relative; }
+  .time-slot:hover { background: rgba(255,255,255,0.09); border-color: var(--border-light); transform: translateY(-1px); }
+  .time-slot.selected { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--black); font-weight: 700; }
+  .time-slot.slot-full { opacity: 0.35; cursor: not-allowed; }
+  .time-slot.slot-full::after { content: 'FULL'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; letter-spacing: 2px; color: var(--accent-red); font-weight: 700; background: rgba(10,10,10,0.75); border-radius: var(--radius-sm); }
+  .time-period { font-size: 10px; opacity: 0.7; display: block; margin-top: 2px; letter-spacing: 1px; }
+  .slot-spots { font-size: 10px; display: block; margin-top: 3px; }
+
+  /* FORM PANEL */
+  .form-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: sticky; top: 88px; }
+  .booking-summary { padding: 22px 24px; background: rgba(201,168,76,0.06); border-bottom: 1px solid rgba(201,168,76,0.2); }
+  .summary-label { font-size: 11px; letter-spacing: 3px; color: var(--accent-gold); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  .summary-session { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1.5px; color: var(--white); }
+  .summary-datetime { font-size: 13px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+  .summary-datetime.set { color: var(--text); }
+  .form-body { padding: 24px; }
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .form-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; transition: all 0.2s; outline: none; }
+  .form-input:focus { border-color: var(--accent-gold); background: rgba(201,168,76,0.04); }
+  .form-input::placeholder { color: #555; }
+  select.form-input option { background: #1a1a1a; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .btn-book { width: 100%; padding: 16px; background: var(--white); color: var(--black); border: none; border-radius: var(--radius-sm); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2.5px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
+  .btn-book::before { content: ''; position: absolute; inset: 0; background: var(--accent-gold); transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; }
+  .btn-book:hover::before { transform: scaleX(1); }
+  .btn-book span { position: relative; z-index: 1; }
+  .btn-book:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-book:disabled::before { display: none; }
+  .sync-options { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+  .sync-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Barlow', sans-serif; }
+  .sync-btn:hover { border-color: var(--border-light); color: var(--text); background: rgba(255,255,255,0.04); }
+
+  /* AI */
+  .ai-bubble { position: fixed; bottom: 28px; right: 28px; z-index: 1000; }
+  .ai-trigger { width: 62px; height: 62px; border-radius: 50%; background: var(--white); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.6); transition: all 0.3s; animation: ai-pulse 3s infinite; position: relative; }
+  @keyframes ai-pulse { 0%,100%{box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 0 rgba(255,255,255,0.3)} 50%{box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 12px rgba(255,255,255,0)} }
+  .ai-trigger:hover { transform: scale(1.08); }
+  .ai-notif { position: absolute; top: -3px; right: -3px; width: 18px; height: 18px; background: var(--accent-red); border-radius: 50%; border: 2px solid var(--black); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: white; }
+  .ai-drawer { position: fixed; bottom: 104px; right: 28px; width: 340px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 24px 64px rgba(0,0,0,0.7); display: flex; flex-direction: column; overflow: hidden; transform: translateY(20px) scale(0.96); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); max-height: 480px; z-index: 999; }
+  .ai-drawer.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
+  .drawer-header { padding: 16px 18px; background: var(--off-black); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .drawer-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .drawer-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1.5px; color: var(--white); }
+  .drawer-status { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 5px; }
+  .drawer-close { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; }
+  .drawer-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .message { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; animation: msg-in 0.3s ease; }
+  @keyframes msg-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .message.assistant { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .message.user { background: var(--white); color: var(--black); align-self: flex-end; font-weight: 500; border-bottom-right-radius: 4px; }
+  .quick-replies { display: flex; flex-wrap: wrap; gap: 6px; }
+  .quick-reply { background: transparent; border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--text); cursor: pointer; transition: all 0.2s; font-family: 'Barlow', sans-serif; }
+  .quick-reply:hover { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--black); }
+  .drawer-input-row { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+  .drawer-input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 20px; padding: 9px 16px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; outline: none; }
+  .drawer-send { width: 36px; height: 36px; border-radius: 50%; background: var(--white); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+  .drawer-send:hover { background: var(--accent-gold); }
+  .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 12px 16px; }
+  .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: typing 1.2s infinite; }
+  .typing-dot:nth-child(2){animation-delay:.2s} .typing-dot:nth-child(3){animation-delay:.4s}
+  @keyframes typing { 0%,60%,100%{transform:translateY(0);opacity:.4} 30%{transform:translateY(-5px);opacity:1} }
+
+  /* SUCCESS */
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,10,0.92); z-index: 500; align-items: center; justify-content: center; backdrop-filter: blur(12px); }
+  .success-overlay.show { display: flex; }
+  .success-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 48px 56px; text-align: center; max-width: 480px; animation: success-in 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes success-in { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+  .success-icon { width: 72px; height: 72px; border-radius: 50%; background: rgba(34,197,94,0.12); border: 2px solid rgba(34,197,94,0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
+  .success-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 2px; color: var(--white); margin-bottom: 10px; }
+  .success-sub { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; }
+  .success-actions { display: flex; gap: 12px; flex-direction: column; }
+  .btn-primary { padding: 14px; background: var(--white); color: var(--black); border: none; border-radius: var(--radius-sm); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
+  .btn-primary:hover { background: var(--accent-gold); }
+  .btn-secondary { padding: 14px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { color: var(--text); }
+
+  @media(max-width:900px){
+    .session-types{grid-template-columns:1fr}
+    .calendar-container{grid-template-columns:1fr;padding:0 20px 60px}
+    .form-panel{position:static}
+    .hero,.session-types,.integrations-bar{padding-left:20px;padding-right:20px}
+    header{padding:0 20px}
+  }
+  @media(max-width:600px){
+    .slots-grid{grid-template-columns:repeat(3,1fr)}
+    .form-row{grid-template-columns:1fr}
+    .header-badge{display:none}
+    .ai-drawer{width:calc(100vw - 40px);right:20px}
+    .success-card{padding:36px 28px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 22 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 2C7.5 2 5 4.5 5 8C5 10.5 6.5 12.5 8.5 13.5L8.3 14.5C6.1 15.5 4.5 17.8 4.5 20.5C4.5 24.5 7.3 27 11 27C14.7 27 17.5 24.5 17.5 20.5C17.5 17.8 15.9 15.5 13.7 14.5L13.5 13.5C15.5 12.5 17 10.5 17 8C17 4.5 14.5 2 11 2Z" stroke="black" stroke-width="2" fill="none"/>
+        <path d="M11 5C9.1 5 7.8 6.3 7.8 8C7.8 9.2 8.4 10.2 9.4 10.8L10.5 11.5L9.5 12C8.1 12.6 7.2 14 7.2 15.5V17" stroke="black" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span class="logo-name">THE FLEX FACILITY</span>
+      <span class="logo-sub">Book A Session</span>
+    </div>
+  </a>
+  <div class="header-badge"><div class="live-dot"></div>Booking Available</div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Earth City, MO · Coach Kenny Sims</div>
+  <h1 class="hero-title">TRAIN WITH<br>THE <span>BEST.</span></h1>
+  <p class="hero-desc">Free Athlete Assessment, group Physique & Lifestyle training, or competitive Bodybuilding coaching. Real results. Zero fluff.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Free Assessment</span></div>
+    <div class="stat"><span class="stat-num">10</span><span class="stat-label">Max Per Athlete Session</span></div>
+    <div class="stat"><span class="stat-num">7</span><span class="stat-label">Days Available</span></div>
+  </div>
+</div>
+
+<!-- SESSION TYPE SELECTOR -->
+<div class="session-types">
+  <div class="session-card active" onclick="selectSession(this,'athlete')" id="card-athlete">
+    <div class="check-mark">✓</div>
+    <div class="session-tag athlete">Free · 1-on-1</div>
+    <div class="session-name">ATHLETE ASSESSMENT</div>
+    <div class="session-desc">Free 1-on-1 with Coach Kenny. Movement screening, strength eval, sport-specific goals, and your personalized training roadmap.</div>
+    <div class="session-duration">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      60 min · Sun 8:30 AM · Mon–Wed 7 PM
+    </div>
+    <div class="capacity-badge" id="cap-athlete">Max 10 spots per session</div>
+  </div>
+  <div class="session-card" onclick="selectSession(this,'lifestyle')" id="card-lifestyle">
+    <div class="check-mark"></div>
+    <div class="session-tag lifestyle">Group · Physique</div>
+    <div class="session-name">PHYSIQUE & LIFESTYLE</div>
+    <div class="session-desc">Body composition, nutrition strategy, and lifestyle performance training for adults ready to look and feel their best. Sustainable. Science-backed.</div>
+    <div class="session-duration">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Group · 7 days/week availability
+    </div>
+    <div class="capacity-badge" id="cap-lifestyle">Open group enrollment</div>
+  </div>
+  <div class="session-card" onclick="selectSession(this,'bodybuilding')" id="card-bodybuilding">
+    <div class="check-mark"></div>
+    <div class="session-tag body">Group · Competitive</div>
+    <div class="session-name">BODYBUILDING</div>
+    <div class="session-desc">Stage-ready physique development. Posing, periodization, peak week protocols, and muscle-by-muscle coaching for competitors and serious builders.</div>
+    <div class="session-duration">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Group · 7 days/week availability
+    </div>
+    <div class="capacity-badge" id="cap-bodybuilding">Open group enrollment</div>
+  </div>
+</div>
+
+<!-- INTEGRATIONS -->
+<div class="integrations-bar">
+  <span class="int-label">Syncs with</span>
+  <div class="int-badge"><div class="dot"></div>Google Calendar</div>
+  <div class="int-badge"><div class="dot"></div>Apple Calendar</div>
+  <div class="int-badge"><div class="dot"></div>FLEX App</div>
+  <div class="int-badge"><div class="dot"></div>VAPI AI</div>
+  <div class="int-badge"><div class="dot"></div>SMS Reminders</div>
+</div>
+
+<!-- CALENDAR + FORM -->
+<div class="calendar-container">
+  <div class="calendar-panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">SELECT A DATE</div>
+        <div class="panel-subtitle">Gold dots = available slots</div>
+      </div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <div class="cal-month" id="cal-month-label">MARCH 2026</div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-weekdays">
+        <div class="cal-weekday">SUN</div><div class="cal-weekday">MON</div><div class="cal-weekday">TUE</div>
+        <div class="cal-weekday">WED</div><div class="cal-weekday">THU</div><div class="cal-weekday">FRI</div><div class="cal-weekday">SAT</div>
+      </div>
+      <div class="cal-days" id="cal-days"></div>
+    </div>
+
+    <!-- SCHEDULE INFO (before date picked) -->
+    <div id="info-panel" class="info-panel">
+      <div class="schedule-info">
+        <div class="schedule-info-title" id="info-title">ATHLETE ASSESSMENT SCHEDULE</div>
+        <div id="info-rows"></div>
+        <div class="schedule-note" id="info-note"></div>
+      </div>
+    </div>
+
+    <!-- TIME SLOTS (after date picked) -->
+    <div class="slots-section" id="slots-section" style="display:none">
+      <div class="slots-header">
+        <div class="slots-title" id="slots-label">AVAILABLE TIMES</div>
+        <div class="slots-cap" id="slots-cap"></div>
+      </div>
+      <div class="slots-grid" id="slots-grid"></div>
+    </div>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div class="form-panel">
+    <div class="booking-summary">
+      <div class="summary-label">Your Session</div>
+      <div class="summary-session" id="summary-session">Athlete Assessment</div>
+      <div class="summary-datetime" id="summary-dt">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Select a date and time above
+      </div>
+    </div>
+    <div class="form-body">
+      <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-input" id="f-name" placeholder="First & Last Name"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Age</label><input type="number" class="form-input" id="f-age" placeholder="Age" min="8" max="75"/></div>
+        <div class="form-group"><label class="form-label">Sport / Activity</label><input type="text" class="form-input" id="f-sport" placeholder="e.g. Football"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Phone Number *</label><input type="tel" class="form-input" id="f-phone" placeholder="(314) 000-0000"/></div>
+      <div class="form-group"><label class="form-label">Email Address *</label><input type="email" class="form-input" id="f-email" placeholder="your@email.com"/></div>
+      <div class="form-group">
+        <label class="form-label">Primary Goal</label>
+        <select class="form-input" id="f-goal">
+          <option value="">Select your goal...</option>
+          <option>Improve speed & agility</option>
+          <option>Build strength & power</option>
+          <option>Improve sports performance</option>
+          <option>Weight loss & body composition</option>
+          <option>Bodybuilding / competition prep</option>
+          <option>General fitness & lifestyle</option>
+          <option>Injury prevention / recovery</option>
+          <option>College athletic prep</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Parent/Guardian (if under 18)</label><input type="text" class="form-input" id="f-guardian" placeholder="Guardian name (optional)"/></div>
+      <div class="form-group"><label class="form-label">Instagram Handle</label><input type="text" class="form-input" id="f-ig" placeholder="@handle (optional)"/></div>
+      <div class="divider"></div>
+      <button class="btn-book" onclick="submitBooking()"><span id="btn-text">CONFIRM SESSION — IT'S FREE</span></button>
+    </div>
+    <div class="sync-options">
+      <button class="sync-btn" onclick="addToCalendar('google')"><svg width="13" height="13" viewBox="0 0 24 24" fill="#4285F4"><path d="M20 3H4C2.9 3 2 3.9 2 5v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H5V8h14v11z"/></svg>Google</button>
+      <button class="sync-btn" onclick="addToCalendar('apple')"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83"/></svg>Apple</button>
+      <button class="sync-btn" onclick="addToCalendar('apple')"><svg width="13" height="13" viewBox="0 0 24 24" fill="#0078d4"><rect x="2" y="2" width="20" height="20" rx="2"/><path fill="white" d="M7 7h10v10H7z"/></svg>Outlook</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI BUBBLE -->
+<div class="ai-bubble">
+  <button class="ai-trigger" onclick="toggleAI()" id="ai-trigger">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#0a0a0a" stroke-width="1.5"/><path d="M14 4C10 4 7 7 7 11C7 13.5 8.2 15.7 10.2 17L10 17.5C8 18.5 6.5 20.5 6.5 23" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/><path d="M14 4C18 4 21 7 21 11C21 13.5 19.8 15.7 17.8 17L18 17.5C20 18.5 21.5 20.5 21.5 23" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="14" r="2" fill="#0a0a0a"/></svg>
+    <div class="ai-notif" id="ai-notif" style="display:none">1</div>
+  </button>
+</div>
+
+<div class="ai-drawer" id="ai-drawer">
+  <div class="drawer-header">
+    <div class="drawer-avatar"><svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M14 3C10 3 7 6 7 10C7 12.5 8.2 14.7 10 16L9.8 17C7.8 18 6.2 20.2 6.2 23" stroke="black" stroke-width="2" stroke-linecap="round"/><path d="M14 3C18 3 21 6 21 10C21 12.5 19.8 14.7 18 16L18.2 17C20.2 18 21.8 20.2 21.8 23" stroke="black" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="2.5" fill="black"/></svg></div>
+    <div><div class="drawer-name">FLEX AI</div><div class="drawer-status"><div class="live-dot" style="width:6px;height:6px"></div>Online</div></div>
+    <button class="drawer-close" onclick="toggleAI()">×</button>
+  </div>
+  <div class="drawer-messages" id="drawer-msgs">
+    <div class="message assistant">Hey! 👋🏾 I'm FLEX — your AI booking assistant. I can help you find the right session, check availability, or answer questions about training with Coach Kenny.</div>
+    <div class="quick-replies">
+      <button class="quick-reply" onclick="sq('Book a free athlete assessment')">Book free assessment</button>
+      <button class="quick-reply" onclick="sq('What are all the session times?')">Session schedule</button>
+      <button class="quick-reply" onclick="sq('Tell me about pricing')">Pricing</button>
+    </div>
+  </div>
+  <div class="drawer-input-row">
+    <input type="text" class="drawer-input" id="drawer-in" placeholder="Ask FLEX anything..." onkeydown="if(event.key==='Enter')sendMsg()"/>
+    <button class="drawer-send" onclick="sendMsg()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <div class="success-title">YOU'RE BOOKED!</div>
+    <div class="success-sub" id="success-msg">Your session is confirmed. Check your phone for a confirmation text.</div>
+    <div class="success-actions">
+      <button class="btn-primary" onclick="addToCalendar('google')">ADD TO GOOGLE CALENDAR</button>
+      <button class="btn-primary" onclick="addToCalendar('apple')" style="background:#111;color:white;border:1px solid #333">ADD TO APPLE CALENDAR</button>
+      <button class="btn-secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===========================================
+// SCHEDULE CONFIGURATION
+// All times use 12-hour format. dow = day of week (0=Sun...6=Sat)
+// booked = current # of bookings (pull from API/Airtable in production)
+// ===========================================
+
+const SESSIONS = {
+  athlete: {
+    name: 'Athlete Assessment',
+    fullName: 'Free Athlete Performance Assessment',
+    btnText: "CONFIRM SESSION — IT'S FREE",
+    maxPerSlot: 10,
+    // Only Sun (0), Mon (1), Tue (2), Wed (3) have slots
+    schedule: {
+      0: [{ time: '8:30 AM', booked: 3 }],
+      1: [{ time: '7:00 PM', booked: 7 }],
+      2: [{ time: '7:00 PM', booked: 2 }],
+      3: [{ time: '7:00 PM', booked: 10 }] // demo: Wed is full
+    },
+    infoTitle: 'ATHLETE ASSESSMENT SCHEDULE',
+    infoNote: 'Max 10 athletes per session. Sessions book fast — grab your spot early.',
+    infoRows: [
+      { day: 'Sunday',    time: '8:30 AM – 9:30 AM' },
+      { day: 'Monday',    time: '7:00 PM – 8:00 PM' },
+      { day: 'Tuesday',   time: '7:00 PM – 8:00 PM' },
+      { day: 'Wednesday', time: '7:00 PM – 8:00 PM' },
+      { day: 'Thursday',  time: null },
+      { day: 'Friday',    time: null },
+      { day: 'Saturday',  time: null },
+    ]
+  },
+
+  lifestyle: {
+    name: 'Physique & Lifestyle',
+    fullName: 'Physique & Lifestyle Group Session',
+    btnText: 'CONFIRM GROUP SESSION',
+    maxPerSlot: null, // no cap
+    // Rule: bookable slots = all START times EXCEPT the last hour before close
+    // Sun: open 9:30–10:30 → only 9:30 bookable (10:30 = close, blocked)
+    // Mon: open 4:00–7:00 → 4,5,6 PM (7 PM blocked)
+    // Tue: open 7:30–9:00 → 7:30, 8:00 AM (9:00 blocked)
+    // Wed: open 5:00–7:00 → 5, 6 PM (7 PM blocked)
+    // Thu: open 7:30–9:00 → 7:30, 8:00 AM (9:00 blocked)
+    // Fri: open 7:30–10:00 → 7:30, 8:30, 9:00 AM (10:00 blocked)
+    // Sat: open 7:00–10:00 → 7:00, 8:00, 9:00 AM (10:00 blocked)
+    schedule: {
+      0: [{ time: '9:30 AM', booked: 0 }],
+      1: [{ time: '4:00 PM', booked: 0 }, { time: '5:00 PM', booked: 0 }, { time: '6:00 PM', booked: 0 }],
+      2: [{ time: '7:30 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }],
+      3: [{ time: '5:00 PM', booked: 0 }, { time: '6:00 PM', booked: 0 }],
+      4: [{ time: '7:30 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }],
+      5: [{ time: '7:30 AM', booked: 0 }, { time: '8:30 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }],
+      6: [{ time: '7:00 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }],
+    },
+    infoTitle: 'PHYSIQUE & LIFESTYLE SCHEDULE',
+    infoNote: 'Group sessions run daily. Last booking accepted 1 hour before closing time.',
+    infoRows: [
+      { day: 'Sunday',    time: '9:30 AM  (closes 10:30)' },
+      { day: 'Monday',    time: '4:00 – 6:00 PM  (closes 7)' },
+      { day: 'Tuesday',   time: '7:30 – 8:00 AM  (closes 9)' },
+      { day: 'Wednesday', time: '5:00 – 6:00 PM  (closes 7)' },
+      { day: 'Thursday',  time: '7:30 – 8:00 AM  (closes 9)' },
+      { day: 'Friday',    time: '7:30 – 9:00 AM  (closes 10)' },
+      { day: 'Saturday',  time: '7:00 – 9:00 AM  (closes 10)' },
+    ]
+  },
+
+  bodybuilding: {
+    name: 'Bodybuilding',
+    fullName: 'Bodybuilding Group Session',
+    btnText: 'CONFIRM GROUP SESSION',
+    maxPerSlot: null,
+    schedule: {
+      0: [{ time: '9:30 AM', booked: 0 }],
+      1: [{ time: '4:00 PM', booked: 0 }, { time: '5:00 PM', booked: 0 }, { time: '6:00 PM', booked: 0 }],
+      2: [{ time: '7:30 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }],
+      3: [{ time: '5:00 PM', booked: 0 }, { time: '6:00 PM', booked: 0 }],
+      4: [{ time: '7:30 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }],
+      5: [{ time: '7:30 AM', booked: 0 }, { time: '8:30 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }],
+      6: [{ time: '7:00 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }],
+    },
+    infoTitle: 'BODYBUILDING SCHEDULE',
+    infoNote: 'Group sessions run daily. Last booking accepted 1 hour before closing time.',
+    infoRows: [
+      { day: 'Sunday',    time: '9:30 AM  (closes 10:30)' },
+      { day: 'Monday',    time: '4:00 – 6:00 PM  (closes 7)' },
+      { day: 'Tuesday',   time: '7:30 – 8:00 AM  (closes 9)' },
+      { day: 'Wednesday', time: '5:00 – 6:00 PM  (closes 7)' },
+      { day: 'Thursday',  time: '7:30 – 8:00 AM  (closes 9)' },
+      { day: 'Friday',    time: '7:30 – 9:00 AM  (closes 10)' },
+      { day: 'Saturday',  time: '7:00 – 9:00 AM  (closes 10)' },
+    ]
+  }
+};
+
+// ===========================================
+// STATE
+// ===========================================
+let curMonth = 2, curYear = 2026;
+let selDate = null, selTime = null, selType = 'athlete';
+const MO = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+const MOS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+// ===========================================
+// SESSION SELECT
+// ===========================================
+function selectSession(card, type) {
+  document.querySelectorAll('.session-card').forEach(c => { c.classList.remove('active'); c.querySelector('.check-mark').innerHTML = ''; });
+  card.classList.add('active');
+  card.querySelector('.check-mark').innerHTML = '✓';
+  selType = type; selDate = null; selTime = null;
+  const s = SESSIONS[type];
+  document.getElementById('summary-session').textContent = s.name;
+  document.getElementById('summary-dt').innerHTML = calIcon() + ' Select a date and time above';
+  document.getElementById('summary-dt').classList.remove('set');
+  document.getElementById('btn-text').textContent = s.btnText;
+  document.getElementById('slots-section').style.display = 'none';
+  document.getElementById('info-panel').style.display = 'block';
+  renderInfo(type);
+  renderCalendar();
+}
+
+function calIcon() {
+  return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+}
+
+function renderInfo(type) {
+  const s = SESSIONS[type];
+  document.getElementById('info-title').textContent = s.infoTitle;
+  document.getElementById('info-note').textContent = s.infoNote;
+  document.getElementById('info-rows').innerHTML = s.infoRows.map(r =>
+    `<div class="schedule-row"><span class="sday">${r.day}</span><span class="stime${r.time ? '' : ' none'}">${r.time || 'No sessions'}</span></div>`
+  ).join('');
+}
+
+// ===========================================
+// CALENDAR RENDER
+// ===========================================
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = `${MO[curMonth]} ${curYear}`;
+  const firstDay = new Date(curYear, curMonth, 1).getDay();
+  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const sched = SESSIONS[selType].schedule;
+  const grid = document.getElementById('cal-days');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < firstDay; i++) {
+    const e = document.createElement('div'); e.className = 'cal-day empty'; grid.appendChild(e);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div'); cell.className = 'cal-day';
+    cell.textContent = d;
+    const dt = new Date(curYear, curMonth, d); dt.setHours(0,0,0,0);
+    const dow = dt.getDay();
+    const isPast = dt < today;
+    const isToday = dt.getTime() === today.getTime();
+    const slots = sched[dow] || [];
+    const hasOpen = slots.some(sl => !isFull(sl));
+
+    if (isPast) cell.classList.add('past');
+    else if (isToday && hasOpen) { cell.classList.add('today', 'has-slots'); cell.onclick = () => pickDate(d, dow, cell); }
+    else if (isToday) { cell.classList.add('today', 'no-slots'); }
+    else if (hasOpen) { cell.classList.add('has-slots'); cell.onclick = () => pickDate(d, dow, cell); }
+    else if (!slots.length) { cell.classList.add('no-slots'); }
+    else { cell.classList.add('no-slots'); cell.title = 'All spots full'; }
+
+    if (selDate && selDate.y === curYear && selDate.m === curMonth && selDate.d === d) {
+      cell.classList.remove('no-slots'); cell.classList.add('selected');
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function isFull(slot) {
+  const max = SESSIONS[selType].maxPerSlot;
+  return max !== null && slot.booked >= max;
+}
+
+// ===========================================
+// DATE / TIME SELECTION
+// ===========================================
+function pickDate(d, dow, cell) {
+  document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
+  cell.classList.add('selected');
+  selDate = { y: curYear, m: curMonth, d, dow };
+  selTime = null;
+
+  const mo = MOS[curMonth];
+  document.getElementById('slots-label').textContent = `AVAILABLE TIMES — ${mo} ${d}`;
+  document.getElementById('info-panel').style.display = 'none';
+  document.getElementById('slots-section').style.display = 'block';
+
+  const s = SESSIONS[selType];
+  const capEl = document.getElementById('slots-cap');
+  capEl.textContent = s.maxPerSlot ? `Max ${s.maxPerSlot} per slot` : 'Group session';
+
+  const slots = s.schedule[dow] || [];
+  const grid = document.getElementById('slots-grid');
+  grid.innerHTML = '';
+
+  if (!slots.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No sessions this day.<br>Please select another date.</div>';
+    return;
+  }
+
+  slots.forEach(sl => {
+    const full = isFull(sl);
+    const el = document.createElement('div');
+    el.className = 'time-slot' + (full ? ' slot-full' : '');
+    const [t, per] = sl.time.split(' ');
+    let spotsHtml = '';
+    if (s.maxPerSlot) {
+      const left = s.maxPerSlot - sl.booked;
+      spotsHtml = `<span class="slot-spots" style="color:${left <= 3 ? 'var(--accent-gold)' : 'var(--muted)'}">${left} spot${left !== 1 ? 's' : ''} left</span>`;
+    }
+    el.innerHTML = `${t}<span class="time-period">${per}</span>${spotsHtml}`;
+    if (!full) el.onclick = () => pickTime(el, sl.time, d, mo);
+    grid.appendChild(el);
+  });
+}
+
+function pickTime(el, time, d, mo) {
+  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  selTime = time;
+  const dt = document.getElementById('summary-dt');
+  dt.innerHTML = `${calIcon()} ${mo} ${d}, ${curYear} at ${time}`;
+  dt.classList.add('set');
+}
+
+function changeMonth(dir) {
+  curMonth += dir;
+  if (curMonth > 11) { curMonth = 0; curYear++; }
+  if (curMonth < 0) { curMonth = 11; curYear--; }
+  selDate = null; selTime = null;
+  document.getElementById('slots-section').style.display = 'none';
+  document.getElementById('info-panel').style.display = 'block';
+  renderCalendar();
+}
+
+// ===========================================
+// BOOKING SUBMIT
+// ===========================================
+function submitBooking() {
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  if (!name || !phone || !email) { alert('Please fill in your name, phone, and email.'); return; }
+  if (!selDate || !selTime) { alert('Please select a date and time for your session.'); return; }
+
+  const s = SESSIONS[selType];
+  const mo = MOS[selDate.m];
+  const payload = {
+    session_type: selType,
+    session_name: s.fullName,
+    date: `${mo} ${selDate.d}, ${selDate.y}`,
+    time: selTime,
+    name, phone, email,
+    age: document.getElementById('f-age').value,
+    sport: document.getElementById('f-sport').value,
+    goal: document.getElementById('f-goal').value,
+    guardian: document.getElementById('f-guardian').value,
+    instagram: document.getElementById('f-ig').value,
+    source: 'booking-calendar',
+    timestamp: new Date().toISOString()
+  };
+
+  console.log('Booking payload:', payload);
+
+  // TODO: wire to your Make.com webhook:
+  // fetch('https://hook.us2.make.com/YOUR_BOOKING_WEBHOOK', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify(payload)
+  // });
+
+  document.getElementById('success-msg').textContent =
+    `Your ${s.name} on ${mo} ${selDate.d} at ${selTime} is confirmed! Coach Kenny's team will reach out shortly. Check your phone for a confirmation text.`;
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+// ===========================================
+// CALENDAR ADD
+// ===========================================
+function addToCalendar(type) {
+  if (!selDate || !selTime) return;
+  const s = SESSIONS[selType];
+  const title = encodeURIComponent(`The FLEX Facility — ${s.name}`);
+  const loc = encodeURIComponent('4132 Shore Line Dr, Earth City, MO 63045');
+  const d = `${selDate.y}${String(selDate.m+1).padStart(2,'0')}${String(selDate.d).padStart(2,'0')}`;
+  if (type === 'google') {
+    window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${d}T090000/${d}T100000&location=${loc}`, '_blank');
+  } else {
+    const blob = new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${decodeURIComponent(title)}\nLOCATION:4132 Shore Line Dr, Earth City, MO 63045\nDTSTART:${d}T090000\nDTEND:${d}T100000\nEND:VEVENT\nEND:VCALENDAR`], {type:'text/calendar'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'flex-session.ics'; a.click();
+  }
+}
+
+// ===========================================
+// AI DRAWER
+// ===========================================
+let aiOpen = false;
+function toggleAI() {
+  aiOpen = !aiOpen;
+  document.getElementById('ai-drawer').classList.toggle('open', aiOpen);
+  document.getElementById('ai-notif').style.display = 'none';
+  if (aiOpen) setTimeout(() => document.getElementById('drawer-in').focus(), 300);
+}
+
+function sendMsg() {
+  const inp = document.getElementById('drawer-in');
+  const txt = inp.value.trim(); if (!txt) return;
+  inp.value = '';
+  addMsg(txt, 'user'); showTyping();
+  setTimeout(() => { removeTyping(); addMsg(aiReply(txt), 'assistant'); }, 1000 + Math.random() * 600);
+}
+
+function sq(txt) {
+  const qr = document.querySelector('.quick-replies'); if (qr) qr.remove();
+  addMsg(txt, 'user'); showTyping();
+  setTimeout(() => { removeTyping(); addMsg(aiReply(txt), 'assistant'); }, 900 + Math.random() * 400);
+}
+
+function addMsg(text, role) {
+  const msgs = document.getElementById('drawer-msgs');
+  const div = document.createElement('div'); div.className = `message ${role}`; div.innerHTML = text;
+  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('drawer-msgs');
+  const div = document.createElement('div'); div.className = 'message assistant typing-indicator'; div.id = 'typing';
+  div.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+}
+function removeTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
+
+function aiReply(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('schedule') || m.includes('time') || m.includes('when') || m.includes('hour') || m.includes('all')) {
+    return '<b>Athlete Assessment:</b> Sun 8:30 AM · Mon–Wed 7:00 PM (max 10 spots) 💪🏾<br><br><b>Physique & Lifestyle / Bodybuilding (Group):</b><br>Sun: 9:30 AM<br>Mon: 4, 5, 6 PM<br>Tue/Thu: 7:30, 8:00 AM<br>Wed: 5, 6 PM<br>Fri: 7:30, 8:30, 9:00 AM<br>Sat: 7, 8, 9 AM';
+  }
+  if (m.includes('book') || m.includes('assessment') || m.includes('sign up') || m.includes('reserve')) {
+    return "Simple! Pick your session type at the top, tap a gold date, choose a time slot, fill in your info, and done. The whole thing takes 2 minutes. Athlete Assessments are 100% free 💪🏾";
+  }
+  if (m.includes('athlete') || m.includes('sport') || m.includes('performance') || m.includes('free')) {
+    return "The Athlete Assessment is a free 60-min 1-on-1 with Coach Kenny — movement screening, strength evaluation, and your personal training plan. Available Sun 8:30 AM and Mon–Wed at 7 PM. Only 10 spots per session so grab yours early!";
+  }
+  if (m.includes('lifestyle') || m.includes('physique') || m.includes('body comp') || m.includes('weight') || m.includes('fat')) {
+    return "Physique & Lifestyle is group training focused on body composition, nutrition, and sustainable results for adults. Sessions run every day of the week — multiple time slots available. Great for anyone who wants to look and feel their best long-term.";
+  }
+  if (m.includes('bodybuilding') || m.includes('compete') || m.includes('stage') || m.includes('posing') || m.includes('contest')) {
+    return "The Bodybuilding track is for competitive athletes and serious builders. Coach Kenny covers posing, periodization, and peak week protocols. Group sessions run daily — same schedule as the Physique & Lifestyle sessions. Pick your slot and let's build! 💪🏾";
+  }
+  if (m.includes('price') || m.includes('cost') || m.includes('how much') || m.includes('membership')) {
+    return "The Athlete Assessment is completely FREE — no catch. Group session pricing (Physique & Lifestyle / Bodybuilding) is discussed after your first visit based on your goals and schedule. No pressure, no hard sell.";
+  }
+  if (m.includes('location') || m.includes('address') || m.includes('where') || m.includes('directions')) {
+    return `4132 Shore Line Dr, Earth City, MO 63045. Easy highway access, good parking. <a href="https://maps.google.com/?q=4132+Shore+Line+Dr+Earth+City+MO" target="_blank" style="color:var(--accent-gold)">Get Directions →</a>`;
+  }
+  if (m.includes('kenny') || m.includes('coach') || m.includes('trainer')) {
+    return "Coach Kenny Sims is the founder of The FLEX Facility. He brings elite-level sports performance methodology to athletes at every level — from youth to collegiate. His coaching is results-first, athlete-centered, and built on real science.";
+  }
+  return "Good question 💪🏾 For anything specific, the best move is locking in your free Athlete Assessment — Coach Kenny will answer everything in person. Want help picking a time on the calendar?";
+}
+
+// ===========================================
+// INIT
+// ===========================================
+renderInfo('athlete');
+renderCalendar();
+setTimeout(() => { document.getElementById('ai-notif').style.display = 'flex'; }, 8000);
+</script>
+</body>
+</html>
