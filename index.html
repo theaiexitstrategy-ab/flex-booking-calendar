@@ -405,6 +405,7 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 // ===========================================
 // SCHEDULE CONFIGURATION
 // All times use 12-hour format. dow = day of week (0=Sun...6=Sat)
@@ -676,16 +677,29 @@ function submitBooking() {
 
   console.log('Booking payload:', payload);
 
-  // TODO: wire to your Make.com webhook:
-  // fetch('https://hook.us2.make.com/YOUR_BOOKING_WEBHOOK', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(payload)
-  // });
+  var btn = document.querySelector('.btn-book');
+  btn.disabled = true;
+  document.getElementById('btn-text').textContent = 'SENDING...';
 
-  document.getElementById('success-msg').textContent =
-    `Your ${s.name} on ${mo} ${selDate.d} at ${selTime} is confirmed! Coach Kenny's team will reach out shortly. Check your phone for a confirmation text.`;
-  document.getElementById('success-overlay').classList.add('show');
+  fetch('https://hook.us2.make.com/mkvrxsygnt9962r3odkpigk4k2qiienq', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(response) {
+    if (!response.ok) throw new Error('Webhook returned ' + response.status);
+    document.getElementById('success-msg').textContent =
+      'Your ' + s.name + ' on ' + mo + ' ' + selDate.d + ' at ' + selTime + ' is confirmed! Coach Kenny\'s team will reach out shortly. Check your phone for a confirmation text.';
+    document.getElementById('success-overlay').classList.add('show');
+  })
+  .catch(function(err) {
+    console.error('Booking webhook error:', err);
+    alert('Something went wrong sending your booking. Please try again.');
+  })
+  .finally(function() {
+    btn.disabled = false;
+    document.getElementById('btn-text').textContent = SESSIONS[selType].btnText;
+  });
 }
 
 // ===========================================
@@ -776,9 +790,19 @@ function aiReply(msg) {
 // ===========================================
 // INIT
 // ===========================================
+// Expose functions for onclick handlers in HTML
+window.selectSession = selectSession;
+window.changeMonth = changeMonth;
+window.submitBooking = submitBooking;
+window.addToCalendar = addToCalendar;
+window.toggleAI = toggleAI;
+window.sendMsg = sendMsg;
+window.sq = sq;
+
 renderInfo('athlete');
 renderCalendar();
-setTimeout(() => { document.getElementById('ai-notif').style.display = 'flex'; }, 8000);
+setTimeout(function() { document.getElementById('ai-notif').style.display = 'flex'; }, 8000);
+}); // end DOMContentLoaded
 </script>
 </body>
 </html>
