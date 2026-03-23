@@ -506,8 +506,29 @@ const SESSIONS = {
 // ===========================================
 let curMonth = 2, curYear = 2026;
 let selDate = null, selTime = null, selType = 'athlete';
+let liveAvailability = null; // cached API response
+let blockedDates = [];       // dates blocked in Airtable
 const MO = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
 const MOS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+// ===========================================
+// LIVE AVAILABILITY FROM API
+// ===========================================
+async function loadAvailability(month, year, sessionType) {
+  try {
+    const res = await fetch('/api/availability?month=' + (month + 1) + '&year=' + year + '&session_type=' + sessionType);
+    if (!res.ok) throw new Error('API returned ' + res.status);
+    const data = await res.json();
+    liveAvailability = data.availability || null;
+    blockedDates = data.blockedDates || [];
+    return data;
+  } catch (err) {
+    console.error('Availability load failed, using fallback:', err);
+    liveAvailability = null;
+    blockedDates = [];
+    return null;
+  }
+}
 
 // ===========================================
 // SESSION SELECT
@@ -525,7 +546,7 @@ function selectSession(card, type) {
   document.getElementById('slots-section').style.display = 'none';
   document.getElementById('info-panel').style.display = 'block';
   renderInfo(type);
-  renderCalendar();
+  loadAvailability(curMonth, curYear, type).then(function() { renderCalendar(); });
 }
 
 function calIcon() {
@@ -549,7 +570,7 @@ function renderCalendar() {
   const firstDay = new Date(curYear, curMonth, 1).getDay();
   const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
   const today = new Date(); today.setHours(0,0,0,0);
-  const sched = SESSIONS[selType].schedule;
+  const fallbackSched = SESSIONS[selType].schedule;
   const grid = document.getElementById('cal-days');
   grid.innerHTML = '';
 
@@ -564,14 +585,29 @@ function renderCalendar() {
     const dow = dt.getDay();
     const isPast = dt < today;
     const isToday = dt.getTime() === today.getTime();
-    const slots = sched[dow] || [];
-    const hasOpen = slots.some(sl => !isFull(sl));
+    const dateKey = curYear + '-' + String(curMonth + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+
+    // check if this date is blocked in Airtable
+    var isBlocked = blockedDates.indexOf(dateKey) !== -1;
+
+    // determine slots: use live API data if available, else fall back to hardcoded schedule
+    var hasOpen = false;
+    if (liveAvailability && liveAvailability[dateKey]) {
+      var daySlots = liveAvailability[dateKey];
+      var times = Object.keys(daySlots);
+      hasOpen = times.some(function(t) { return !daySlots[t].full; });
+    } else {
+      var slots = fallbackSched[dow] || [];
+      hasOpen = slots.some(function(sl) { return !isFull(sl); });
+    }
 
     if (isPast) cell.classList.add('past');
-    else if (isToday && hasOpen) { cell.classList.add('today', 'has-slots'); cell.onclick = () => pickDate(d, dow, cell); }
+    else if (isBlocked) { cell.classList.add('no-slots'); cell.title = 'Unavailable'; }
+    else if (isToday && hasOpen) { cell.classList.add('today', 'has-slots'); cell.onclick = (function(dd, dw, c) { return function() { pickDate(dd, dw, c); }; })(d, dow, cell); }
     else if (isToday) { cell.classList.add('today', 'no-slots'); }
-    else if (hasOpen) { cell.classList.add('has-slots'); cell.onclick = () => pickDate(d, dow, cell); }
-    else if (!slots.length) { cell.classList.add('no-slots'); }
+    else if (hasOpen) { cell.classList.add('has-slots'); cell.onclick = (function(dd, dw, c) { return function() { pickDate(dd, dw, c); }; })(d, dow, cell); }
+    else if (liveAvailability && !liveAvailability[dateKey]) { cell.classList.add('no-slots'); }
+    else if (!liveAvailability && !(fallbackSched[dow] || []).length) { cell.classList.add('no-slots'); }
     else { cell.classList.add('no-slots'); cell.title = 'All spots full'; }
 
     if (selDate && selDate.y === curYear && selDate.m === curMonth && selDate.d === d) {
@@ -602,29 +638,47 @@ function pickDate(d, dow, cell) {
 
   const s = SESSIONS[selType];
   const capEl = document.getElementById('slots-cap');
-  capEl.textContent = s.maxPerSlot ? `Max ${s.maxPerSlot} per slot` : 'Group session';
+  const dateKey = curYear + '-' + String(curMonth + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
 
-  const slots = s.schedule[dow] || [];
+  // use live data if available, else fallback to hardcoded schedule
+  var useLive = liveAvailability && liveAvailability[dateKey];
+  var slotEntries = [];
+
+  if (useLive) {
+    var dayData = liveAvailability[dateKey];
+    Object.keys(dayData).forEach(function(time) {
+      var info = dayData[time];
+      slotEntries.push({ time: time, booked: info.booked, max: info.max, full: info.full });
+    });
+    capEl.textContent = slotEntries.length ? ('Max ' + slotEntries[0].max + ' per slot') : '';
+  } else {
+    var fallbackSlots = s.schedule[dow] || [];
+    fallbackSlots.forEach(function(sl) {
+      slotEntries.push({ time: sl.time, booked: sl.booked, max: s.maxPerSlot, full: isFull(sl) });
+    });
+    capEl.textContent = s.maxPerSlot ? ('Max ' + s.maxPerSlot + ' per slot') : 'Group session';
+  }
+
   const grid = document.getElementById('slots-grid');
   grid.innerHTML = '';
 
-  if (!slots.length) {
+  if (!slotEntries.length) {
     grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No sessions this day.<br>Please select another date.</div>';
     return;
   }
 
-  slots.forEach(sl => {
-    const full = isFull(sl);
+  slotEntries.forEach(function(sl) {
     const el = document.createElement('div');
-    el.className = 'time-slot' + (full ? ' slot-full' : '');
-    const [t, per] = sl.time.split(' ');
+    el.className = 'time-slot' + (sl.full ? ' slot-full' : '');
+    const parts = sl.time.split(' ');
+    const t = parts[0], per = parts[1] || '';
     let spotsHtml = '';
-    if (s.maxPerSlot) {
-      const left = s.maxPerSlot - sl.booked;
-      spotsHtml = `<span class="slot-spots" style="color:${left <= 3 ? 'var(--accent-gold)' : 'var(--muted)'}">${left} spot${left !== 1 ? 's' : ''} left</span>`;
+    if (sl.max) {
+      const left = sl.max - sl.booked;
+      spotsHtml = '<span class="slot-spots" style="color:' + (left <= 3 ? 'var(--accent-gold)' : 'var(--muted)') + '">' + left + ' spot' + (left !== 1 ? 's' : '') + ' left</span>';
     }
-    el.innerHTML = `${t}<span class="time-period">${per}</span>${spotsHtml}`;
-    if (!full) el.onclick = () => pickTime(el, sl.time, d, mo);
+    el.innerHTML = t + '<span class="time-period">' + per + '</span>' + spotsHtml;
+    if (!sl.full) el.onclick = (function(element, time) { return function() { pickTime(element, time, d, mo); }; })(el, sl.time);
     grid.appendChild(el);
   });
 }
@@ -645,7 +699,8 @@ function changeMonth(dir) {
   selDate = null; selTime = null;
   document.getElementById('slots-section').style.display = 'none';
   document.getElementById('info-panel').style.display = 'block';
-  renderCalendar();
+  renderCalendar(); // render immediately with fallback data
+  loadAvailability(curMonth, curYear, selType).then(function() { renderCalendar(); }); // re-render with live data
 }
 
 // ===========================================
@@ -660,41 +715,52 @@ function submitBooking() {
 
   const s = SESSIONS[selType];
   const mo = MOS[selDate.m];
+  // format date as YYYY-MM-DD for Airtable
+  const dateStr = selDate.y + '-' + String(selDate.m + 1).padStart(2,'0') + '-' + String(selDate.d).padStart(2,'0');
   const payload = {
     session_type: selType,
     session_name: s.fullName,
-    date: `${mo} ${selDate.d}, ${selDate.y}`,
+    date: dateStr,
     time: selTime,
-    name, phone, email,
+    name: name,
+    phone: phone,
+    email: email,
     age: document.getElementById('f-age').value,
     sport: document.getElementById('f-sport').value,
     goal: document.getElementById('f-goal').value,
     guardian: document.getElementById('f-guardian').value,
     instagram: document.getElementById('f-ig').value,
-    source: 'booking-calendar',
-    timestamp: new Date().toISOString()
+    source: 'booking-calendar'
   };
 
   console.log('Booking payload:', payload);
 
   var btn = document.querySelector('.btn-book');
   btn.disabled = true;
-  document.getElementById('btn-text').textContent = 'SENDING...';
+  document.getElementById('btn-text').textContent = 'BOOKING...';
 
-  fetch('https://hook.us2.make.com/mkvrxsygnt9962r3odkpigk4k2qiienq', {
+  fetch('/api/bookings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   })
   .then(function(response) {
-    if (!response.ok) throw new Error('Webhook returned ' + response.status);
-    document.getElementById('success-msg').textContent =
-      'Your ' + s.name + ' on ' + mo + ' ' + selDate.d + ' at ' + selTime + ' is confirmed! Coach Kenny\'s team will reach out shortly. Check your phone for a confirmation text.';
-    document.getElementById('success-overlay').classList.add('show');
+    return response.json().then(function(data) {
+      if (response.status === 409) {
+        alert('Sorry \u2014 that slot was just booked. Please choose another time.');
+        return;
+      }
+      if (!response.ok) throw new Error(data.error || 'Booking failed');
+      document.getElementById('success-msg').textContent =
+        'Your ' + s.name + ' on ' + mo + ' ' + selDate.d + ' at ' + selTime + ' is confirmed! Coach Kenny\'s team will reach out shortly. Check your phone for a confirmation text.';
+      document.getElementById('success-overlay').classList.add('show');
+      // reload availability so the just-booked slot shows as taken
+      loadAvailability(curMonth, curYear, selType).then(function() { renderCalendar(); });
+    });
   })
   .catch(function(err) {
-    console.error('Booking webhook error:', err);
-    alert('Something went wrong sending your booking. Please try again.');
+    console.error('Booking error:', err);
+    alert('Something went wrong. Please try again or call 1-877-515-FLEX.');
   })
   .finally(function() {
     btn.disabled = false;
@@ -800,7 +866,8 @@ window.sendMsg = sendMsg;
 window.sq = sq;
 
 renderInfo('athlete');
-renderCalendar();
+renderCalendar(); // render immediately with fallback data
+loadAvailability(curMonth, curYear, selType).then(function() { renderCalendar(); }); // re-render with live data
 setTimeout(function() { document.getElementById('ai-notif').style.display = 'flex'; }, 8000);
 }); // end DOMContentLoaded
 </script>

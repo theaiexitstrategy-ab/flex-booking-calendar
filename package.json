@@ -1,0 +1,8 @@
+{
+  "name": "flex-booking-calendar",
+  "version": "1.0.0",
+  "description": "The Flex Facility Booking Calendar",
+  "dependencies": {
+    "airtable": "^0.12.0"
+  }
+}
