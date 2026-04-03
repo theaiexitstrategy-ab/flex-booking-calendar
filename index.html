@@ -512,8 +512,11 @@ const SESSIONS = {
 // ===========================================
 // STATE
 // ===========================================
-let curMonth = 2, curYear = 2026;
+const _now = new Date();
+let curMonth = _now.getMonth(), curYear = _now.getFullYear();
 let selDate = null, selTime = null, selType = 'athlete';
+// Live booking counts fetched from Supabase: { "Apr 5, 2026|7:00 PM": 3, ... }
+let liveBookingCounts = {};
 const MO = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
 const MOS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
@@ -547,6 +550,32 @@ function renderInfo(type) {
   document.getElementById('info-rows').innerHTML = s.infoRows.map(r =>
     `<div class="schedule-row"><span class="sday">${r.day}</span><span class="stime${r.time ? '' : ' none'}">${r.time || 'No sessions'}</span></div>`
   ).join('');
+}
+
+// ===========================================
+// LIVE SLOT AVAILABILITY FROM SUPABASE
+// ===========================================
+function fetchSlotCounts() {
+  fetch('/api/slots?month=' + curMonth + '&year=' + curYear + '&session_type=' + selType)
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.success) {
+        liveBookingCounts = res.data || {};
+        console.log('Live slot counts:', liveBookingCounts);
+        // Re-render if a date is selected to update spot counts
+        if (selDate) {
+          var activeCell = document.querySelector('.cal-day.selected');
+          if (activeCell) pickDate(selDate.d, selDate.dow, activeCell);
+        }
+      }
+    })
+    .catch(function(err) { console.error('Slot fetch error:', err); });
+}
+
+function getLiveBooked(date, time) {
+  // date format: "APR 5, 2026", time: "7:00 PM" — match against Supabase data
+  var key = date + '|' + time;
+  return liveBookingCounts[key] || 0;
 }
 
 // ===========================================
@@ -587,11 +616,23 @@ function renderCalendar() {
     }
     grid.appendChild(cell);
   }
+  // Fetch live booking counts from Supabase
+  fetchSlotCounts();
+}
+
+function getBookedCount(slot, dateStr) {
+  // Use live count from Supabase if available, else fall back to hardcoded
+  if (dateStr) {
+    var key = dateStr + '|' + slot.time;
+    if (liveBookingCounts[key] !== undefined) return liveBookingCounts[key];
+  }
+  return slot.booked;
 }
 
 function isFull(slot) {
   const max = SESSIONS[selType].maxPerSlot;
-  return max !== null && slot.booked >= max;
+  if (max === null) return false;
+  return slot.booked >= max;
 }
 
 // ===========================================
@@ -621,14 +662,18 @@ function pickDate(d, dow, cell) {
     return;
   }
 
+  // Build date string to match Supabase format (e.g. "APR 5, 2026")
+  const dateStr = mo + ' ' + d + ', ' + curYear;
+
   slots.forEach(sl => {
-    const full = isFull(sl);
+    const booked = getBookedCount(sl, dateStr);
+    const full = s.maxPerSlot !== null && booked >= s.maxPerSlot;
     const el = document.createElement('div');
     el.className = 'time-slot' + (full ? ' slot-full' : '');
     const [t, per] = sl.time.split(' ');
     let spotsHtml = '';
     if (s.maxPerSlot) {
-      const left = s.maxPerSlot - sl.booked;
+      const left = Math.max(0, s.maxPerSlot - booked);
       spotsHtml = `<span class="slot-spots" style="color:${left <= 3 ? 'var(--accent-gold)' : 'var(--muted)'}">${left} spot${left !== 1 ? 's' : ''} left</span>`;
     }
     el.innerHTML = `${t}<span class="time-period">${per}</span>${spotsHtml}`;
