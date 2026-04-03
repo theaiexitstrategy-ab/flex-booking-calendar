@@ -51,7 +51,7 @@ module.exports = async function handler(req, res) {
       await Promise.all([
         sendSms({
           to: phone,
-          body: 'Hey ' + firstName + ', your session at The Flex Facility on ' + bDate + ' has been cancelled. Want to rebook? Head to book.theflexfacility.com 🙌🏾',
+          body: firstName + '... say it ain\'t so. 😩 Your session at The Flex Facility on ' + bDate + ' has been cancelled and honestly, Coach Kenny is taking it personally.\n\nWe had the playlist ready. The energy was set. Your gains were THIS close. 😤\n\nLook, life happens — but your comeback doesn\'t have to wait. Reschedule right now and let\'s get back to work: book.theflexfacility.com\n\nThe FLEX Facility misses you already. 💪🏾\n\nReply STOP to opt out.',
           eventType: 'cancel'
         }),
         sendSms({
