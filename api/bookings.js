@@ -12,59 +12,64 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const {
-      session_type, session_name, date, time,
-      name, phone, email, age, sport, goal,
-      guardian, instagram, source, timestamp
-    } = req.body
-
-    const segment = (session_type === 'lifestyle' || session_type === 'body')
+    var body = req.body
+    var name = body.name
+    var phone = body.phone
+    var email = body.email
+    var session_type = body.session_type
+    var session_name = body.session_name
+    var date = body.date
+    var time = body.time
+    var segment = (session_type === 'lifestyle' || session_type === 'body')
       ? 'lifestyle' : 'athlete'
-    const firstName = name.split(' ')[0]
+    var firstName = name.split(' ')[0]
+    var phoneE164 = formatE164(phone)
 
-    // 1. Upsert contact into contacts_master
-    const { data: contact, error: contactErr } = await supabase
-      .from('contacts_master')
-      .upsert({
-        full_name: name,
-        email: email,
-        phone: formatE164(phone),
-        segment: segment,
-        instagram: instagram || null,
-        source: source || 'booking-calendar',
-        created_at: timestamp || new Date().toISOString()
-      }, { onConflict: 'email' })
-      .select()
-      .single()
+    // 1. Upsert contact into contacts_master (only core fields)
+    var contactId = null
+    try {
+      var contactResult = await supabase
+        .from('contacts_master')
+        .upsert({
+          full_name: name,
+          email: email,
+          phone: phoneE164,
+          segment: segment
+        }, { onConflict: 'email' })
+        .select('id')
+        .single()
 
-    if (contactErr) console.error('Contact upsert error:', contactErr)
+      if (contactResult.data) contactId = contactResult.data.id
+      if (contactResult.error) console.error('Contact upsert error:', contactResult.error)
+    } catch (contactErr) {
+      console.error('Contact upsert exception:', contactErr)
+    }
 
-    // 2. Insert booking into bookings_master
-    const { data: booking, error: bookingErr } = await supabase
+    // 2. Insert booking into bookings_master (only core fields)
+    var bookingData = {
+      contact_name: name,
+      contact_email: email,
+      contact_phone: phoneE164,
+      session_type: session_type,
+      session_name: session_name,
+      booking_date: date,
+      booking_time: time,
+      status: 'Scheduled',
+      segment: segment
+    }
+
+    // Add contact_id only if we got one
+    if (contactId) bookingData.contact_id = contactId
+
+    var bookingResult = await supabase
       .from('bookings_master')
-      .insert({
-        contact_name: name,
-        contact_email: email,
-        contact_phone: formatE164(phone),
-        contact_id: contact ? contact.id : null,
-        session_type: session_type,
-        session_name: session_name,
-        booking_date: date,
-        booking_time: time,
-        status: 'Scheduled',
-        segment: segment,
-        age: age || null,
-        sport: sport || null,
-        goal: goal || null,
-        guardian: guardian || null,
-        instagram: instagram || null,
-        source: source || 'booking-calendar',
-        created_at: timestamp || new Date().toISOString()
-      })
+      .insert(bookingData)
       .select()
       .single()
 
-    if (bookingErr) throw bookingErr
+    if (bookingResult.error) throw bookingResult.error
+
+    var booking = bookingResult.data
 
     // 3. Send confirmation SMS (fire-and-forget)
     try {
@@ -87,7 +92,7 @@ module.exports = async function handler(req, res) {
     return res.status(201).json({
       success: true,
       message: 'Booking saved and confirmation SMS sent',
-      data: { booking_id: booking.id, contact_id: contact ? contact.id : null }
+      data: { booking_id: booking.id, contact_id: contactId }
     })
   } catch (err) {
     console.error('Booking API error:', err)
