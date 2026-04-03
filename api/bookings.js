@@ -114,11 +114,15 @@ module.exports = async function handler(req, res) {
     }
 
     // 3. Send SMS (fire-and-forget)
+    var bookingId = bookingRow ? bookingRow.id : ''
+    var baseUrl = process.env.SITE_URL || 'https://book.theflexfacility.com'
+    var manageUrl = baseUrl + '/manage.html?id=' + bookingId
+
     try {
       await Promise.all([
         sendSms({
           to: phone,
-          body: 'Hey ' + firstName + '! 👊🏾 Your session at The Flex Facility is confirmed for ' + date + ' at ' + time + '. Coach Kenny is ready to work. Reply STOP to opt out.',
+          body: 'Hey ' + firstName + '! 👊🏾 Your session at The Flex Facility is confirmed for ' + date + ' at ' + time + '. Coach Kenny is ready to work.\n\nNeed to reschedule or cancel? ' + manageUrl + '\n\nReply STOP to opt out.',
           eventType: 'booking'
         }),
         sendSms({

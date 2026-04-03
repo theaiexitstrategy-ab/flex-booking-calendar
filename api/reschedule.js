@@ -52,7 +52,7 @@ module.exports = async function handler(req, res) {
       await Promise.all([
         sendSms({
           to: booking.contact_phone,
-          body: 'Hey ' + firstName + '! Your session at The Flex Facility has been rescheduled to ' + new_date + ' at ' + new_time + '. See you then! 💪🏾',
+          body: 'Hey ' + firstName + '! Your session at The Flex Facility has been rescheduled to ' + new_date + ' at ' + new_time + '. See you then! 💪🏾\n\nNeed to make another change? ' + (process.env.SITE_URL || 'https://book.theflexfacility.com') + '/manage.html?id=' + booking_id,
           eventType: 'reschedule'
         }),
         sendSms({
