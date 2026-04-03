@@ -1,4 +1,4 @@
-const supabase = require('../lib/supabase')
+var supabase = require('../lib/supabase')
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -22,9 +22,10 @@ module.exports = async function handler(req, res) {
     var m = parseInt(month)
     var y = parseInt(year)
 
+    // Fetch all non-cancelled bookings — select * to work with any schema
     var query = supabase
       .from('bookings_master')
-      .select('booking_date, booking_time, session_type')
+      .select('*')
       .neq('status', 'Cancelled')
 
     if (session_type) {
@@ -42,8 +43,12 @@ module.exports = async function handler(req, res) {
     var bookings = result.data || []
     for (var i = 0; i < bookings.length; i++) {
       var b = bookings[i]
-      if (b.booking_date && b.booking_date.includes(targetMonth) && b.booking_date.includes(String(y))) {
-        var key = b.booking_date + '|' + b.booking_time
+      // Try both possible column names for date and time
+      var bDate = b.booking_date || b.date || ''
+      var bTime = b.booking_time || b.time || ''
+
+      if (bDate && bDate.includes(targetMonth) && bDate.includes(String(y))) {
+        var key = bDate + '|' + bTime
         counts[key] = (counts[key] || 0) + 1
       }
     }

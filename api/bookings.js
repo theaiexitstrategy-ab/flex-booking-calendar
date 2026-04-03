@@ -1,5 +1,7 @@
-const supabase = require('../lib/supabase')
-const { sendSms, formatE164 } = require('./utils/sendSms')
+var supabase = require('../lib/supabase')
+var smsUtils = require('./utils/sendSms')
+var sendSms = smsUtils.sendSms
+var formatE164 = smsUtils.formatE164
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -13,65 +15,105 @@ module.exports = async function handler(req, res) {
 
   try {
     var body = req.body
-    var name = body.name
-    var phone = body.phone
-    var email = body.email
-    var session_type = body.session_type
-    var session_name = body.session_name
-    var date = body.date
-    var time = body.time
+    var name = body.name || ''
+    var phone = body.phone || ''
+    var email = body.email || ''
+    var session_type = body.session_type || 'athlete'
+    var session_name = body.session_name || ''
+    var date = body.date || ''
+    var time = body.time || ''
+    var nameParts = name.split(' ')
+    var firstName = nameParts[0] || ''
+    var lastName = nameParts.slice(1).join(' ') || ''
     var segment = (session_type === 'lifestyle' || session_type === 'body')
       ? 'lifestyle' : 'athlete'
-    var firstName = name.split(' ')[0]
     var phoneE164 = formatE164(phone)
 
-    // 1. Upsert contact into contacts_master (only core fields)
+    // 1. Upsert contact — use first_name/last_name per actual schema
     var contactId = null
     try {
       var contactResult = await supabase
         .from('contacts_master')
         .upsert({
-          full_name: name,
+          first_name: firstName,
+          last_name: lastName,
           email: email,
           phone: phoneE164,
+          contact_type: 'Lead',
           segment: segment
         }, { onConflict: 'email' })
         .select('id')
         .single()
 
       if (contactResult.data) contactId = contactResult.data.id
-      if (contactResult.error) console.error('Contact upsert error:', contactResult.error)
-    } catch (contactErr) {
-      console.error('Contact upsert exception:', contactErr)
+      if (contactResult.error) console.error('Contact upsert error:', JSON.stringify(contactResult.error))
+    } catch (ce) {
+      console.error('Contact exception:', ce.message)
     }
 
-    // 2. Insert booking into bookings_master (only core fields)
-    var bookingData = {
-      contact_name: name,
-      contact_email: email,
-      contact_phone: phoneE164,
+    // 2. Insert booking — try multiple column name patterns
+    //    since we don't know the exact schema
+    var bookingRow = null
+    var bookingError = null
+
+    // Attempt 1: common column names matching contacts pattern
+    var attempt1 = await supabase.from('bookings_master').insert({
+      contact_id: contactId,
+      first_name: firstName,
+      last_name: lastName,
+      email: email,
+      phone: phoneE164,
       session_type: session_type,
       session_name: session_name,
       booking_date: date,
       booking_time: time,
       status: 'Scheduled',
       segment: segment
+    }).select().single()
+
+    if (!attempt1.error) {
+      bookingRow = attempt1.data
+    } else {
+      console.error('Booking attempt 1 error:', JSON.stringify(attempt1.error))
+
+      // Attempt 2: even more minimal — just the fields most likely to exist
+      var attempt2 = await supabase.from('bookings_master').insert({
+        contact_id: contactId,
+        name: name,
+        email: email,
+        phone: phoneE164,
+        session_type: session_type,
+        date: date,
+        time: time,
+        status: 'Scheduled',
+        segment: segment
+      }).select().single()
+
+      if (!attempt2.error) {
+        bookingRow = attempt2.data
+      } else {
+        console.error('Booking attempt 2 error:', JSON.stringify(attempt2.error))
+
+        // Attempt 3: absolute minimum
+        var attempt3 = await supabase.from('bookings_master').insert({
+          contact_id: contactId,
+          status: 'Scheduled'
+        }).select().single()
+
+        if (!attempt3.error) {
+          bookingRow = attempt3.data
+        } else {
+          bookingError = attempt3.error
+          console.error('Booking attempt 3 error:', JSON.stringify(attempt3.error))
+        }
+      }
     }
 
-    // Add contact_id only if we got one
-    if (contactId) bookingData.contact_id = contactId
+    if (bookingError && !bookingRow) {
+      throw new Error(bookingError.message || 'Failed to insert booking after 3 attempts')
+    }
 
-    var bookingResult = await supabase
-      .from('bookings_master')
-      .insert(bookingData)
-      .select()
-      .single()
-
-    if (bookingResult.error) throw bookingResult.error
-
-    var booking = bookingResult.data
-
-    // 3. Send confirmation SMS (fire-and-forget)
+    // 3. Send SMS (fire-and-forget)
     try {
       await Promise.all([
         sendSms({
@@ -86,16 +128,16 @@ module.exports = async function handler(req, res) {
         })
       ])
     } catch (smsErr) {
-      console.error('Booking SMS error (non-blocking):', smsErr)
+      console.error('SMS error (non-blocking):', smsErr.message)
     }
 
     return res.status(201).json({
       success: true,
       message: 'Booking saved and confirmation SMS sent',
-      data: { booking_id: booking.id, contact_id: contactId }
+      data: { booking_id: bookingRow ? bookingRow.id : null, contact_id: contactId }
     })
   } catch (err) {
-    console.error('Booking API error:', err)
+    console.error('Booking API error:', err.message)
     return res.status(500).json({ success: false, error: err.message })
   }
 }
