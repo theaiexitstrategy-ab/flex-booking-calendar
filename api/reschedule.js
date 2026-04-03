@@ -64,7 +64,7 @@ module.exports = async function handler(req, res) {
       await Promise.all([
         sendSms({
           to: phone,
-          body: 'Hey ' + firstName + '! Your session at The Flex Facility has been rescheduled to ' + new_date + ' at ' + new_time + '. See you then! 💪🏾\n\nNeed to make another change? ' + manageUrl,
+          body: 'Hey ' + firstName + '! ✅ Your session at The Flex Facility has been officially rescheduled.\n\n📅 ' + new_date + '\n⏰ ' + new_time + '\n\nCoach Kenny is locked in and ready to work. Don\'t be late — greatness doesn\'t wait! 💪🏾\n\nNeed to make another change? ' + manageUrl + '\n\nReply STOP to opt out.',
           eventType: 'reschedule'
         }),
         sendSms({
