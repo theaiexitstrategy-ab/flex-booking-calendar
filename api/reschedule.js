@@ -1,7 +1,7 @@
-import supabase from '../lib/supabase.js'
-import { sendSms } from './utils/sendSms.js'
+const supabase = require('../lib/supabase')
+const { sendSms } = require('./utils/sendSms')
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -18,7 +18,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'booking_id, new_date, and new_time are required' })
     }
 
-    // 1. Fetch existing booking
     const { data: booking, error: fetchErr } = await supabase
       .from('bookings_master')
       .select('*')
@@ -29,7 +28,6 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Booking not found' })
     }
 
-    // 2. Update booking in Supabase
     const { data: updated, error: updateErr } = await supabase
       .from('bookings_master')
       .update({
@@ -46,7 +44,6 @@ export default async function handler(req, res) {
 
     const firstName = booking.contact_name.split(' ')[0]
 
-    // 3. Send reschedule SMS (fire-and-forget)
     try {
       await Promise.all([
         sendSms({

@@ -1,7 +1,7 @@
-import supabase from '../lib/supabase.js'
-import { sendSms, formatE164 } from './utils/sendSms.js'
+const supabase = require('../lib/supabase')
+const { sendSms, formatE164 } = require('./utils/sendSms')
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')

@@ -1,6 +1,6 @@
-import supabase from '../lib/supabase.js'
+const supabase = require('../lib/supabase')
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   try {
     const { data, error } = await supabase
       .from('contacts_master')

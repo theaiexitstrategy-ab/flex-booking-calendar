@@ -1,9 +1,9 @@
-import supabase from '../../lib/supabase.js'
+const supabase = require('../../lib/supabase')
 
 /**
  * Format phone number to E.164 (+1XXXXXXXXXX)
  */
-export function formatE164(phone) {
+function formatE164(phone) {
   const digits = phone.replace(/\D/g, '')
   if (digits.length === 10) return `+1${digits}`
   if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
@@ -13,10 +13,8 @@ export function formatE164(phone) {
 
 /**
  * Send an SMS via Twilio REST API (no SDK needed)
- * @param {object} params - { to, body, eventType }
- * @returns {object} - { success, sid?, error? }
  */
-export async function sendSms({ to, body, eventType = 'general' }) {
+async function sendSms({ to, body, eventType = 'general' }) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
   const fromNumber = process.env.TWILIO_PHONE_NUMBER
@@ -65,7 +63,6 @@ export async function sendSms({ to, body, eventType = 'general' }) {
   } catch (err) {
     console.error('SMS send error:', err)
 
-    // Still try to log the failure
     await supabase.from('sms_log').insert({
       to_number: toFormatted,
       message_body: body,
@@ -77,3 +74,5 @@ export async function sendSms({ to, body, eventType = 'general' }) {
     return { success: false, error: err.message }
   }
 }
+
+module.exports = { sendSms, formatE164 }
