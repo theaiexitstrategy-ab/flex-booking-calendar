@@ -689,11 +689,23 @@ function submitBooking() {
   btn.disabled = true;
   document.getElementById('btn-text').textContent = 'SENDING...';
 
-  fetch('https://hook.us2.make.com/mkvrxsygnt9962r3odkpigk4k2qiienq', {
+  // Send to Make.com webhook AND Supabase + Twilio SMS in parallel
+  var webhookPromise = fetch('https://hook.us2.make.com/mkvrxsygnt9962r3odkpigk4k2qiienq', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
-  })
+  });
+
+  // Write to Supabase + trigger confirmation SMS via /api/bookings
+  fetch('/api/bookings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(function(r) { return r.json(); })
+    .then(function(data) { console.log('Supabase booking + SMS:', data); })
+    .catch(function(err) { console.error('Supabase/SMS error:', err); });
+
+  webhookPromise
   .then(function(response) {
     if (!response.ok) throw new Error('Webhook returned ' + response.status);
     document.getElementById('success-msg').textContent =
