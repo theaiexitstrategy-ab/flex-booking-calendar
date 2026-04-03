@@ -1,13 +1,17 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const NUDGE_MESSAGES = [
-  (name: string) =>
-    `Hey ${name}! 👋🏾 Still thinking about leveling up your performance? Coach Kenny has open slots this week. Book your free assessment: book.theflexfacility.com`,
-  (name: string) =>
-    `What's stopping you? 💪🏾 Your free Athlete Performance Assessment at The Flex Facility takes less than an hour and could change everything. book.theflexfacility.com`,
-  (name: string) =>
-    `Hey ${name} — Coach Kenny wanted me to check in. Spots are limited this week. Lock yours in: book.theflexfacility.com 🔒`,
-]
+type NudgeFn = (name: string) => string
+
+const nudge1: NudgeFn = (name) =>
+  `Hey ${name}! 👋🏾 Still thinking about leveling up your performance? Coach Kenny has open slots this week. Book your free assessment: book.theflexfacility.com`
+
+const nudge2: NudgeFn = (_name) =>
+  `What's stopping you? 💪🏾 Your free Athlete Performance Assessment at The Flex Facility takes less than an hour and could change everything. book.theflexfacility.com`
+
+const nudge3: NudgeFn = (name) =>
+  `Hey ${name} — Coach Kenny wanted me to check in. Spots are limited this week. Lock yours in: book.theflexfacility.com 🔒`
+
+const NUDGE_MESSAGES: NudgeFn[] = [nudge1, nudge2, nudge3]
 
 function formatE164(phone: string): string {
   const digits = phone.replace(/\D/g, '')
@@ -65,12 +69,6 @@ Deno.serve(async () => {
 
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
 
-  // Find contacts who:
-  // - have a phone number
-  // - have NOT booked (no confirmed booking)
-  // - haven't been nudged in 3 days
-  // - are not opted out
-  // - nudge_count < 5
   const { data: contacts, error: queryErr } = await supabase
     .from('contacts_master')
     .select('id, full_name, phone, nudge_count, last_nudge_sent')
@@ -99,7 +97,6 @@ Deno.serve(async () => {
 
     const result = await sendSms(contact.phone, message, twilioSid, twilioToken, twilioFrom)
 
-    // Log to sms_log
     await supabase.from('sms_log').insert({
       to_number: formatE164(contact.phone),
       message_body: message,
@@ -109,7 +106,6 @@ Deno.serve(async () => {
     })
 
     if (result.success) {
-      // Update contact: increment nudge_count, set last_nudge_sent
       await supabase
         .from('contacts_master')
         .update({
@@ -128,7 +124,7 @@ Deno.serve(async () => {
 
   return new Response(
     JSON.stringify({
-      message: `Nudge sequence complete`,
+      message: 'Nudge sequence complete',
       total: contacts.length,
       sent: sentCount,
       errors: errors.length > 0 ? errors : undefined,
