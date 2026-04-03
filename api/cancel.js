@@ -1,7 +1,7 @@
-import supabase from '../lib/supabase.js'
-import { sendSms } from './utils/sendSms.js'
+const supabase = require('../lib/supabase')
+const { sendSms } = require('./utils/sendSms')
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -12,25 +12,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { booking_id } = req.body
+    var booking_id = req.body.booking_id
 
     if (!booking_id) {
       return res.status(400).json({ error: 'booking_id is required' })
     }
 
-    // 1. Fetch existing booking
-    const { data: booking, error: fetchErr } = await supabase
+    var fetchResult = await supabase
       .from('bookings_master')
       .select('*')
       .eq('id', booking_id)
       .single()
 
-    if (fetchErr || !booking) {
+    if (fetchResult.error || !fetchResult.data) {
       return res.status(404).json({ error: 'Booking not found' })
     }
 
-    // 2. Update status to cancelled
-    const { data: updated, error: updateErr } = await supabase
+    var booking = fetchResult.data
+
+    var updateResult = await supabase
       .from('bookings_master')
       .update({
         status: 'Cancelled',
@@ -40,21 +40,20 @@ export default async function handler(req, res) {
       .select()
       .single()
 
-    if (updateErr) throw updateErr
+    if (updateResult.error) throw updateResult.error
 
-    const firstName = booking.contact_name.split(' ')[0]
+    var firstName = booking.contact_name.split(' ')[0]
 
-    // 3. Send cancellation SMS (fire-and-forget)
     try {
       await Promise.all([
         sendSms({
           to: booking.contact_phone,
-          body: `Hey ${firstName}, your session at The Flex Facility on ${booking.booking_date} has been cancelled. Want to rebook? Head to book.theflexfacility.com 🙌🏾`,
+          body: 'Hey ' + firstName + ', your session at The Flex Facility on ' + booking.booking_date + ' has been cancelled. Want to rebook? Head to book.theflexfacility.com 🙌🏾',
           eventType: 'cancel'
         }),
         sendSms({
           to: process.env.COACH_KENNY_PHONE || booking.contact_phone,
-          body: `Cancellation: ${booking.contact_name} cancelled their ${booking.booking_date} at ${booking.booking_time} session.`,
+          body: 'Cancellation: ' + booking.contact_name + ' cancelled their ' + booking.booking_date + ' at ' + booking.booking_time + ' session.',
           eventType: 'cancel'
         })
       ])
@@ -65,7 +64,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       message: 'Booking cancelled and SMS sent',
-      data: updated
+      data: updateResult.data
     })
   } catch (err) {
     console.error('Cancel API error:', err)

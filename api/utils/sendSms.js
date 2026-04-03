@@ -1,9 +1,6 @@
-import supabase from '../../lib/supabase.js'
+const supabase = require('../../lib/supabase')
 
-/**
- * Format phone number to E.164 (+1XXXXXXXXXX)
- */
-export function formatE164(phone) {
+function formatE164(phone) {
   const digits = phone.replace(/\D/g, '')
   if (digits.length === 10) return `+1${digits}`
   if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
@@ -11,12 +8,7 @@ export function formatE164(phone) {
   return `+${digits}`
 }
 
-/**
- * Send an SMS via Twilio REST API (no SDK needed)
- * @param {object} params - { to, body, eventType }
- * @returns {object} - { success, sid?, error? }
- */
-export async function sendSms({ to, body, eventType = 'general' }) {
+async function sendSms({ to, body, eventType = 'general' }) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
   const fromNumber = process.env.TWILIO_PHONE_NUMBER
@@ -47,14 +39,13 @@ export async function sendSms({ to, body, eventType = 'general' }) {
 
     const result = await response.json()
 
-    // Log to sms_log table
     await supabase.from('sms_log').insert({
       to_number: toFormatted,
       message_body: body,
       event_type: eventType,
       status: response.ok ? 'sent' : 'failed',
       created_at: new Date().toISOString()
-    }).then(() => {}).catch(err => console.error('SMS log insert error:', err))
+    }).then(function() {}).catch(function(err) { console.error('SMS log insert error:', err) })
 
     if (!response.ok) {
       console.error('Twilio API error:', result)
@@ -65,15 +56,16 @@ export async function sendSms({ to, body, eventType = 'general' }) {
   } catch (err) {
     console.error('SMS send error:', err)
 
-    // Still try to log the failure
     await supabase.from('sms_log').insert({
       to_number: toFormatted,
       message_body: body,
       event_type: eventType,
       status: 'error',
       created_at: new Date().toISOString()
-    }).catch(() => {})
+    }).catch(function() {})
 
     return { success: false, error: err.message }
   }
 }
+
+module.exports = { sendSms, formatE164 }

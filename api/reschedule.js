@@ -1,7 +1,7 @@
-import supabase from '../lib/supabase.js'
-import { sendSms } from './utils/sendSms.js'
+const supabase = require('../lib/supabase')
+const { sendSms } = require('./utils/sendSms')
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -12,25 +12,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { booking_id, new_date, new_time } = req.body
+    var booking_id = req.body.booking_id
+    var new_date = req.body.new_date
+    var new_time = req.body.new_time
 
     if (!booking_id || !new_date || !new_time) {
       return res.status(400).json({ error: 'booking_id, new_date, and new_time are required' })
     }
 
-    // 1. Fetch existing booking
-    const { data: booking, error: fetchErr } = await supabase
+    var fetchResult = await supabase
       .from('bookings_master')
       .select('*')
       .eq('id', booking_id)
       .single()
 
-    if (fetchErr || !booking) {
+    if (fetchResult.error || !fetchResult.data) {
       return res.status(404).json({ error: 'Booking not found' })
     }
 
-    // 2. Update booking in Supabase
-    const { data: updated, error: updateErr } = await supabase
+    var booking = fetchResult.data
+
+    var updateResult = await supabase
       .from('bookings_master')
       .update({
         booking_date: new_date,
@@ -42,21 +44,20 @@ export default async function handler(req, res) {
       .select()
       .single()
 
-    if (updateErr) throw updateErr
+    if (updateResult.error) throw updateResult.error
 
-    const firstName = booking.contact_name.split(' ')[0]
+    var firstName = booking.contact_name.split(' ')[0]
 
-    // 3. Send reschedule SMS (fire-and-forget)
     try {
       await Promise.all([
         sendSms({
           to: booking.contact_phone,
-          body: `Hey ${firstName}! Your session at The Flex Facility has been rescheduled to ${new_date} at ${new_time}. See you then! 💪🏾`,
+          body: 'Hey ' + firstName + '! Your session at The Flex Facility has been rescheduled to ' + new_date + ' at ' + new_time + '. See you then! 💪🏾',
           eventType: 'reschedule'
         }),
         sendSms({
           to: process.env.COACH_KENNY_PHONE || booking.contact_phone,
-          body: `Reschedule: ${booking.contact_name} moved to ${new_date} at ${new_time}.`,
+          body: 'Reschedule: ' + booking.contact_name + ' moved to ' + new_date + ' at ' + new_time + '.',
           eventType: 'reschedule'
         })
       ])
@@ -67,7 +68,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       message: 'Booking rescheduled and SMS sent',
-      data: updated
+      data: updateResult.data
     })
   } catch (err) {
     console.error('Reschedule API error:', err)

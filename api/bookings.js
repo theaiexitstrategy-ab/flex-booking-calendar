@@ -1,7 +1,7 @@
-import supabase from '../lib/supabase.js'
-import { sendSms, formatE164 } from './utils/sendSms.js'
+const supabase = require('../lib/supabase')
+const { sendSms, formatE164 } = require('./utils/sendSms')
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -27,9 +27,9 @@ export default async function handler(req, res) {
       .from('contacts_master')
       .upsert({
         full_name: name,
-        email,
+        email: email,
         phone: formatE164(phone),
-        segment,
+        segment: segment,
         instagram: instagram || null,
         source: source || 'booking-calendar',
         created_at: timestamp || new Date().toISOString()
@@ -46,13 +46,13 @@ export default async function handler(req, res) {
         contact_name: name,
         contact_email: email,
         contact_phone: formatE164(phone),
-        contact_id: contact?.id || null,
-        session_type,
-        session_name,
+        contact_id: contact ? contact.id : null,
+        session_type: session_type,
+        session_name: session_name,
         booking_date: date,
         booking_time: time,
         status: 'Scheduled',
-        segment,
+        segment: segment,
         age: age || null,
         sport: sport || null,
         goal: goal || null,
@@ -66,17 +66,17 @@ export default async function handler(req, res) {
 
     if (bookingErr) throw bookingErr
 
-    // 3. Send confirmation SMS (fire-and-forget — never break the booking flow)
+    // 3. Send confirmation SMS (fire-and-forget)
     try {
       await Promise.all([
         sendSms({
           to: phone,
-          body: `Hey ${firstName}! 👊🏾 Your session at The Flex Facility is confirmed for ${date} at ${time}. Coach Kenny is ready to work. Reply STOP to opt out.`,
+          body: 'Hey ' + firstName + '! 👊🏾 Your session at The Flex Facility is confirmed for ' + date + ' at ' + time + '. Coach Kenny is ready to work. Reply STOP to opt out.',
           eventType: 'booking'
         }),
         sendSms({
           to: process.env.COACH_KENNY_PHONE || phone,
-          body: `New booking: ${name} — ${date} at ${time}. Service: ${session_name}. Phone: ${phone}.`,
+          body: 'New booking: ' + name + ' — ' + date + ' at ' + time + '. Service: ' + session_name + '. Phone: ' + phone + '.',
           eventType: 'booking'
         })
       ])
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
     return res.status(201).json({
       success: true,
       message: 'Booking saved and confirmation SMS sent',
-      data: { booking_id: booking.id, contact_id: contact?.id }
+      data: { booking_id: booking.id, contact_id: contact ? contact.id : null }
     })
   } catch (err) {
     console.error('Booking API error:', err)
