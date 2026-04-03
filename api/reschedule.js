@@ -1,5 +1,6 @@
-const supabase = require('../lib/supabase')
-const { sendSms } = require('./utils/sendSms')
+var supabase = require('../lib/supabase')
+var smsUtils = require('./utils/sendSms')
+var sendSms = smsUtils.sendSms
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -32,32 +33,43 @@ module.exports = async function handler(req, res) {
 
     var booking = fetchResult.data
 
+    // Build update — try both column name patterns
+    var updateData = { status: 'Rescheduled' }
+    // Set both possible date/time columns
+    if (booking.booking_date !== undefined) { updateData.booking_date = new_date; updateData.booking_time = new_time; }
+    if (booking.date !== undefined) { updateData.date = new_date; updateData.time = new_time; }
+    // If neither existed, set both and let Supabase pick what works
+    if (booking.booking_date === undefined && booking.date === undefined) {
+      updateData.booking_date = new_date;
+      updateData.booking_time = new_time;
+    }
+
     var updateResult = await supabase
       .from('bookings_master')
-      .update({
-        booking_date: new_date,
-        booking_time: new_time,
-        status: 'Rescheduled',
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', booking_id)
       .select()
       .single()
 
     if (updateResult.error) throw updateResult.error
 
-    var firstName = booking.contact_name.split(' ')[0]
+    // Get contact info — handle both column naming patterns
+    var phone = booking.phone || booking.contact_phone || ''
+    var name = booking.first_name ? (booking.first_name + ' ' + (booking.last_name || '')) : (booking.name || booking.contact_name || '')
+    var firstName = (booking.first_name || name.split(' ')[0] || '')
+    var baseUrl = process.env.SITE_URL || 'https://book.theflexfacility.com'
+    var manageUrl = baseUrl + '/manage.html?id=' + booking_id
 
     try {
       await Promise.all([
         sendSms({
-          to: booking.contact_phone,
-          body: 'Hey ' + firstName + '! Your session at The Flex Facility has been rescheduled to ' + new_date + ' at ' + new_time + '. See you then! 💪🏾\n\nNeed to make another change? ' + (process.env.SITE_URL || 'https://book.theflexfacility.com') + '/manage.html?id=' + booking_id,
+          to: phone,
+          body: 'Hey ' + firstName + '! Your session at The Flex Facility has been rescheduled to ' + new_date + ' at ' + new_time + '. See you then! 💪🏾\n\nNeed to make another change? ' + manageUrl,
           eventType: 'reschedule'
         }),
         sendSms({
-          to: process.env.COACH_KENNY_PHONE || booking.contact_phone,
-          body: 'Reschedule: ' + booking.contact_name + ' moved to ' + new_date + ' at ' + new_time + '.',
+          to: process.env.COACH_KENNY_PHONE || phone,
+          body: 'Reschedule: ' + name.trim() + ' moved to ' + new_date + ' at ' + new_time + '.',
           eventType: 'reschedule'
         })
       ])

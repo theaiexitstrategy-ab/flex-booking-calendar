@@ -1,5 +1,6 @@
-const supabase = require('../lib/supabase')
-const { sendSms } = require('./utils/sendSms')
+var supabase = require('../lib/supabase')
+var smsUtils = require('./utils/sendSms')
+var sendSms = smsUtils.sendSms
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -32,28 +33,30 @@ module.exports = async function handler(req, res) {
 
     var updateResult = await supabase
       .from('bookings_master')
-      .update({
-        status: 'Cancelled',
-        updated_at: new Date().toISOString()
-      })
+      .update({ status: 'Cancelled' })
       .eq('id', booking_id)
       .select()
       .single()
 
     if (updateResult.error) throw updateResult.error
 
-    var firstName = booking.contact_name.split(' ')[0]
+    // Get contact info — handle both column naming patterns
+    var phone = booking.phone || booking.contact_phone || ''
+    var name = booking.first_name ? (booking.first_name + ' ' + (booking.last_name || '')) : (booking.name || booking.contact_name || '')
+    var firstName = (booking.first_name || name.split(' ')[0] || '')
+    var bDate = booking.booking_date || booking.date || ''
+    var bTime = booking.booking_time || booking.time || ''
 
     try {
       await Promise.all([
         sendSms({
-          to: booking.contact_phone,
-          body: 'Hey ' + firstName + ', your session at The Flex Facility on ' + booking.booking_date + ' has been cancelled. Want to rebook? Head to book.theflexfacility.com 🙌🏾',
+          to: phone,
+          body: 'Hey ' + firstName + ', your session at The Flex Facility on ' + bDate + ' has been cancelled. Want to rebook? Head to book.theflexfacility.com 🙌🏾',
           eventType: 'cancel'
         }),
         sendSms({
-          to: process.env.COACH_KENNY_PHONE || booking.contact_phone,
-          body: 'Cancellation: ' + booking.contact_name + ' cancelled their ' + booking.booking_date + ' at ' + booking.booking_time + ' session.',
+          to: process.env.COACH_KENNY_PHONE || phone,
+          body: 'Cancellation: ' + name.trim() + ' cancelled their ' + bDate + ' at ' + bTime + ' session.',
           eventType: 'cancel'
         })
       ])

@@ -10,29 +10,31 @@
     --black: #080808; --off-black: #111111; --card-bg: #141414;
     --border: rgba(255,255,255,0.08); --border-light: rgba(255,255,255,0.15);
     --white: #ffffff; --muted: #999999;
-    --accent-gold: #d4a017; --accent-red: #E8200A;
+    --accent-gold: #d4a017; --accent-gold-light: #f0c040;
+    --accent-red: #E8200A;
     --text: #F5F5F5; --success: #22c55e;
     --radius: 12px; --radius-sm: 8px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--black); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; max-width: 480px; width: 100%; }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--white); text-align: center; margin-bottom: 8px; }
-  .subtitle { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 32px; letter-spacing: 1px; }
+  body { background: var(--black); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; padding: 20px; }
+  .container { max-width: 600px; margin: 0 auto; }
+  .header { text-align: center; padding: 20px 0 30px; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--white); }
+  .subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; }
   .loading { text-align: center; color: var(--muted); padding: 40px 0; }
   .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .booking-info { margin-bottom: 28px; }
-  .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
   .info-row:last-child { border-bottom: none; }
-  .info-label { color: var(--muted); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  .info-label { color: var(--muted); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; }
   .info-value { color: var(--white); font-weight: 600; }
   .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
   .status-Scheduled, .status-Confirmed { background: rgba(34,197,94,0.15); color: var(--success); }
   .status-Rescheduled { background: rgba(212,160,23,0.15); color: var(--accent-gold); }
   .status-Cancelled { background: rgba(232,32,10,0.15); color: var(--accent-red); }
-  .actions { display: flex; flex-direction: column; gap: 12px; }
-  .btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .actions { display: flex; gap: 12px; margin-top: 20px; }
+  .btn { flex: 1; padding: 14px; border: none; border-radius: var(--radius-sm); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
   .btn-reschedule { background: var(--accent-gold); color: var(--black); }
   .btn-reschedule:hover { filter: brightness(1.1); }
   .btn-cancel { background: transparent; color: var(--accent-red); border: 1px solid rgba(232,32,10,0.4); }
@@ -40,19 +42,47 @@
   .btn-rebook { background: var(--white); color: var(--black); }
   .btn-rebook:hover { background: var(--accent-gold); }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .success-msg { text-align: center; color: var(--success); padding: 16px 0; font-size: 15px; }
   .error-msg { text-align: center; color: var(--accent-red); padding: 20px 0; }
-  .success-msg { text-align: center; color: var(--success); padding: 20px 0; font-size: 16px; }
-  .reschedule-form { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
-  .form-label { display: block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
-  .form-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; outline: none; margin-bottom: 16px; }
-  .form-input:focus { border-color: var(--accent-gold); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; color: var(--white); }
+
+  /* Calendar */
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-nav-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .cal-nav-btn:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+  .cal-month-label { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600; color: var(--white); letter-spacing: 2px; text-transform: uppercase; }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 6px; }
+  .cal-weekday { text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; padding: 4px 0; }
+  .cal-days { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.15s; color: var(--text); border: 1px solid transparent; position: relative; }
+  .cal-day:hover:not(.empty):not(.past):not(.no-slots) { background: rgba(255,255,255,0.08); }
+  .cal-day.past { color: rgba(255,255,255,0.15); cursor: default; }
+  .cal-day.empty { cursor: default; }
+  .cal-day.no-slots { color: rgba(255,255,255,0.2); cursor: default; }
+  .cal-day.has-slots::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--accent-gold); }
+  .cal-day.selected { background: var(--white) !important; color: var(--black) !important; font-weight: 700; }
+  .cal-day.today { border-color: var(--accent-gold); color: var(--accent-gold); font-weight: 700; }
+
+  /* Time slots */
+  .slots-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
+  .time-slot { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 600; color: var(--text); }
+  .time-slot:hover { background: rgba(255,255,255,0.09); border-color: var(--border-light); }
+  .time-slot.selected { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--black); }
+  .time-slot.slot-full { opacity: 0.3; cursor: not-allowed; }
+  .time-period { font-size: 10px; opacity: 0.7; display: block; margin-top: 2px; letter-spacing: 1px; }
+  .slot-spots { font-size: 10px; display: block; margin-top: 2px; }
+  .no-slots-msg { color: var(--muted); font-size: 13px; text-align: center; padding: 16px 0; }
+
+  #reschedule-section { display: none; }
+  .confirm-bar { margin-top: 16px; }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">THE FLEX FACILITY</div>
-  <div class="subtitle">Manage Your Booking</div>
+<div class="container">
+  <div class="header">
+    <div class="logo">THE FLEX FACILITY</div>
+    <div class="subtitle">Manage Your Booking</div>
+  </div>
 
   <div id="loading" class="loading">
     <div class="spinner"></div>
@@ -60,15 +90,87 @@
   </div>
 
   <div id="content" style="display:none">
-    <div id="booking-details"></div>
-    <div id="actions"></div>
+    <!-- Booking details card -->
+    <div class="card" id="booking-card"></div>
+
+    <!-- Action buttons -->
+    <div id="action-area"></div>
+
+    <!-- Reschedule calendar section -->
+    <div id="reschedule-section" class="card">
+      <div class="section-title">SELECT A NEW DATE & TIME</div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8249;</button>
+        <span class="cal-month-label" id="cal-month-label"></span>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">&#8250;</button>
+      </div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Sun</div><div class="cal-weekday">Mon</div><div class="cal-weekday">Tue</div>
+        <div class="cal-weekday">Wed</div><div class="cal-weekday">Thu</div><div class="cal-weekday">Fri</div><div class="cal-weekday">Sat</div>
+      </div>
+      <div class="cal-days" id="cal-days"></div>
+      <div id="slots-area" style="margin-top:16px"></div>
+      <div class="confirm-bar" id="confirm-bar" style="display:none">
+        <button class="btn btn-reschedule" onclick="confirmReschedule()" style="width:100%">CONFIRM RESCHEDULE</button>
+      </div>
+    </div>
   </div>
 
   <div id="error" style="display:none" class="error-msg"></div>
 </div>
 
 <script>
+// ============================================
+// SCHEDULE CONFIG — same as booking page
+// ============================================
+var SESSIONS = {
+  athlete: {
+    maxPerSlot: 10,
+    schedule: {
+      0: [{ time: '8:30 AM' }],
+      1: [{ time: '7:00 PM' }],
+      2: [{ time: '7:00 PM' }],
+      3: [{ time: '7:00 PM' }]
+    }
+  },
+  lifestyle: {
+    maxPerSlot: null,
+    schedule: {
+      0: [{ time: '9:30 AM' }],
+      1: [{ time: '4:00 PM' }, { time: '5:00 PM' }, { time: '6:00 PM' }],
+      2: [{ time: '7:30 AM' }, { time: '8:00 AM' }],
+      3: [{ time: '5:00 PM' }, { time: '6:00 PM' }],
+      4: [{ time: '7:30 AM' }, { time: '8:00 AM' }],
+      5: [{ time: '7:30 AM' }, { time: '8:30 AM' }, { time: '9:00 AM' }],
+      6: [{ time: '7:00 AM' }, { time: '8:00 AM' }, { time: '9:00 AM' }]
+    }
+  },
+  bodybuilding: {
+    maxPerSlot: null,
+    schedule: {
+      0: [{ time: '9:30 AM' }],
+      1: [{ time: '4:00 PM' }, { time: '5:00 PM' }, { time: '6:00 PM' }],
+      2: [{ time: '7:30 AM' }, { time: '8:00 AM' }],
+      3: [{ time: '5:00 PM' }, { time: '6:00 PM' }],
+      4: [{ time: '7:30 AM' }, { time: '8:00 AM' }],
+      5: [{ time: '7:30 AM' }, { time: '8:30 AM' }, { time: '9:00 AM' }],
+      6: [{ time: '7:00 AM' }, { time: '8:00 AM' }, { time: '9:00 AM' }]
+    }
+  }
+};
+
+var MO = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+var MOS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
 var bookingId = new URLSearchParams(window.location.search).get('id');
+var bookingData = null;
+var curMonth, curYear, selDate = null, selTime = null;
+var liveBookingCounts = {};
+
+// Init calendar to current month
+var _now = new Date();
+curMonth = _now.getMonth();
+curYear = _now.getFullYear();
 
 if (!bookingId) {
   document.getElementById('loading').style.display = 'none';
@@ -79,9 +181,6 @@ if (!bookingId) {
 }
 
 function loadBooking() {
-  // Use the health endpoint to verify connection, then fetch from Supabase via a lookup endpoint
-  // Since we don't have a dedicated lookup endpoint, we'll use the slots endpoint pattern
-  // Actually, let's call a simple GET to our bookings with the ID
   fetch('/api/lookup?id=' + bookingId)
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -91,17 +190,19 @@ function loadBooking() {
         document.getElementById('error').textContent = data.error || 'Booking not found.';
         return;
       }
-      renderBooking(data.data);
+      bookingData = data.data;
+      renderBooking();
     })
-    .catch(function(err) {
+    .catch(function() {
       document.getElementById('loading').style.display = 'none';
       document.getElementById('error').style.display = 'block';
       document.getElementById('error').textContent = 'Could not load booking. Please try again.';
     });
 }
 
-function renderBooking(b) {
-  var name = b.first_name || b.name || b.contact_name || 'Unknown';
+function renderBooking() {
+  var b = bookingData;
+  var name = b.first_name ? (b.first_name + ' ' + (b.last_name || '')) : (b.name || b.contact_name || 'Unknown');
   var date = b.booking_date || b.date || '';
   var time = b.booking_time || b.time || '';
   var session = b.session_name || b.session_type || '';
@@ -110,74 +211,208 @@ function renderBooking(b) {
 
   document.getElementById('content').style.display = 'block';
 
-  document.getElementById('booking-details').innerHTML =
-    '<div class="booking-info">' +
-      '<div class="info-row"><span class="info-label">Name</span><span class="info-value">' + name + '</span></div>' +
-      '<div class="info-row"><span class="info-label">Session</span><span class="info-value">' + session + '</span></div>' +
-      '<div class="info-row"><span class="info-label">Date</span><span class="info-value">' + date + '</span></div>' +
-      '<div class="info-row"><span class="info-label">Time</span><span class="info-value">' + time + '</span></div>' +
-      '<div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="status-badge status-' + status + '">' + status + '</span></span></div>' +
-    '</div>';
+  document.getElementById('booking-card').innerHTML =
+    '<div class="info-row"><span class="info-label">Name</span><span class="info-value">' + name.trim() + '</span></div>' +
+    '<div class="info-row"><span class="info-label">Session</span><span class="info-value">' + session + '</span></div>' +
+    '<div class="info-row"><span class="info-label">Date</span><span class="info-value">' + date + '</span></div>' +
+    '<div class="info-row"><span class="info-label">Time</span><span class="info-value">' + time + '</span></div>' +
+    '<div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="status-badge status-' + status + '">' + status + '</span></span></div>';
 
   if (isCancelled) {
-    document.getElementById('actions').innerHTML =
-      '<div class="success-msg">This booking has been cancelled.</div>' +
-      '<div class="actions"><a href="/" class="btn btn-rebook">BOOK A NEW SESSION</a></div>';
+    document.getElementById('action-area').innerHTML =
+      '<div class="card"><div class="success-msg">This booking has been cancelled.</div>' +
+      '<a href="/" class="btn btn-rebook" style="display:block;text-align:center;text-decoration:none">BOOK A NEW SESSION</a></div>';
+    document.getElementById('reschedule-section').style.display = 'none';
   } else {
-    document.getElementById('actions').innerHTML =
+    document.getElementById('action-area').innerHTML =
       '<div class="actions">' +
         '<button class="btn btn-reschedule" onclick="showReschedule()">RESCHEDULE</button>' +
         '<button class="btn btn-cancel" onclick="cancelBooking()">CANCEL BOOKING</button>' +
-      '</div>' +
-      '<div id="reschedule-form" class="reschedule-form">' +
-        '<label class="form-label">New Date</label>' +
-        '<input type="date" class="form-input" id="new-date">' +
-        '<label class="form-label">New Time</label>' +
-        '<input type="time" class="form-input" id="new-time">' +
-        '<button class="btn btn-reschedule" onclick="submitReschedule()">CONFIRM RESCHEDULE</button>' +
       '</div>';
   }
 }
 
+// ============================================
+// RESCHEDULE — REAL CALENDAR WITH AVAILABILITY
+// ============================================
 function showReschedule() {
-  document.getElementById('reschedule-form').style.display = 'block';
+  document.getElementById('reschedule-section').style.display = 'block';
+  document.getElementById('reschedule-section').scrollIntoView({ behavior: 'smooth' });
+  selDate = null;
+  selTime = null;
+  renderCalendar();
 }
 
-function submitReschedule() {
-  var newDate = document.getElementById('new-date').value;
-  var newTime = document.getElementById('new-time').value;
-  if (!newDate || !newTime) { alert('Please select a new date and time.'); return; }
+function getSessionType() {
+  if (!bookingData) return 'athlete';
+  var st = bookingData.session_type || '';
+  if (st === 'lifestyle' || st === 'body' || st === 'bodybuilding') return st;
+  return 'athlete';
+}
 
-  // Format time to 12-hour
-  var parts = newTime.split(':');
-  var h = parseInt(parts[0]);
-  var m = parts[1];
-  var ampm = h >= 12 ? 'PM' : 'AM';
-  if (h > 12) h -= 12;
-  if (h === 0) h = 12;
-  var formattedTime = h + ':' + m + ' ' + ampm;
+function getSchedule() {
+  var type = getSessionType();
+  // bodybuilding and lifestyle share the same schedule
+  if (type === 'body') type = 'bodybuilding';
+  return SESSIONS[type] || SESSIONS.athlete;
+}
 
-  // Format date to "APR 5, 2026"
-  var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  var d = new Date(newDate + 'T00:00:00');
-  var formattedDate = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+function fetchSlotCounts() {
+  var type = getSessionType();
+  fetch('/api/slots?month=' + curMonth + '&year=' + curYear + '&session_type=' + type)
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.success) {
+        liveBookingCounts = res.data || {};
+        if (selDate) {
+          renderSlots(selDate.d, selDate.dow);
+        }
+      }
+    })
+    .catch(function(err) { console.error('Slot fetch error:', err); });
+}
+
+function getBookedCount(time, dateStr) {
+  var key = dateStr + '|' + time;
+  return liveBookingCounts[key] || 0;
+}
+
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = MO[curMonth] + ' ' + curYear;
+  var firstDay = new Date(curYear, curMonth, 1).getDay();
+  var daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var sched = getSchedule().schedule;
+  var grid = document.getElementById('cal-days');
+  grid.innerHTML = '';
+
+  for (var i = 0; i < firstDay; i++) {
+    var e = document.createElement('div'); e.className = 'cal-day empty'; grid.appendChild(e);
+  }
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var cell = document.createElement('div'); cell.className = 'cal-day';
+    cell.textContent = d;
+    var dt = new Date(curYear, curMonth, d); dt.setHours(0,0,0,0);
+    var dow = dt.getDay();
+    var isPast = dt < today;
+    var isToday = dt.getTime() === today.getTime();
+    var slots = sched[dow] || [];
+
+    if (isPast) {
+      cell.classList.add('past');
+    } else if (slots.length > 0) {
+      cell.classList.add('has-slots');
+      if (isToday) cell.classList.add('today');
+      (function(dd, dw, cl) {
+        cl.onclick = function() { pickDate(dd, dw, cl); };
+      })(d, dow, cell);
+    } else {
+      cell.classList.add('no-slots');
+      if (isToday) cell.classList.add('today');
+    }
+
+    if (selDate && selDate.y === curYear && selDate.m === curMonth && selDate.d === d) {
+      cell.classList.add('selected');
+    }
+    grid.appendChild(cell);
+  }
+  fetchSlotCounts();
+}
+
+function pickDate(d, dow, cell) {
+  document.querySelectorAll('.cal-day').forEach(function(c) { c.classList.remove('selected'); });
+  cell.classList.add('selected');
+  selDate = { y: curYear, m: curMonth, d: d, dow: dow };
+  selTime = null;
+  document.getElementById('confirm-bar').style.display = 'none';
+  renderSlots(d, dow);
+}
+
+function renderSlots(d, dow) {
+  var sched = getSchedule();
+  var slots = sched.schedule[dow] || [];
+  var area = document.getElementById('slots-area');
+  var mo = MOS[curMonth];
+  var dateStr = mo + ' ' + d + ', ' + curYear;
+
+  if (!slots.length) {
+    area.innerHTML = '<div class="no-slots-msg">No sessions available this day.</div>';
+    return;
+  }
+
+  var html = '<div class="slots-grid">';
+  for (var i = 0; i < slots.length; i++) {
+    var sl = slots[i];
+    var booked = getBookedCount(sl.time, dateStr);
+    var max = sched.maxPerSlot;
+    var full = max !== null && booked >= max;
+    var parts = sl.time.split(' ');
+    var spotsHtml = '';
+    if (max) {
+      var left = Math.max(0, max - booked);
+      var color = left <= 3 ? 'var(--accent-gold)' : 'var(--muted)';
+      spotsHtml = '<span class="slot-spots" style="color:' + color + '">' + left + ' spot' + (left !== 1 ? 's' : '') + ' left</span>';
+    }
+    html += '<div class="time-slot' + (full ? ' slot-full' : '') + (selTime === sl.time ? ' selected' : '') + '" ' +
+      (full ? '' : 'onclick="pickTime(\'' + sl.time + '\')"') + '>' +
+      parts[0] + '<span class="time-period">' + parts[1] + '</span>' + spotsHtml + '</div>';
+  }
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function pickTime(time) {
+  selTime = time;
+  // Re-render to show selection
+  if (selDate) renderSlots(selDate.d, selDate.dow);
+  document.getElementById('confirm-bar').style.display = 'block';
+}
+
+function changeMonth(dir) {
+  curMonth += dir;
+  if (curMonth > 11) { curMonth = 0; curYear++; }
+  if (curMonth < 0) { curMonth = 11; curYear--; }
+  selDate = null; selTime = null;
+  document.getElementById('slots-area').innerHTML = '';
+  document.getElementById('confirm-bar').style.display = 'none';
+  renderCalendar();
+}
+
+function confirmReschedule() {
+  if (!selDate || !selTime) { alert('Please select a date and time.'); return; }
+
+  var mo = MOS[selDate.m];
+  var formattedDate = mo + ' ' + selDate.d + ', ' + selDate.y;
+
+  var btn = document.querySelector('#confirm-bar .btn');
+  btn.disabled = true;
+  btn.textContent = 'RESCHEDULING...';
 
   fetch('/api/reschedule', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ booking_id: bookingId, new_date: formattedDate, new_time: formattedTime })
+    body: JSON.stringify({ booking_id: bookingId, new_date: formattedDate, new_time: selTime })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (data.success) {
-      document.getElementById('actions').innerHTML = '<div class="success-msg">Your booking has been rescheduled to ' + formattedDate + ' at ' + formattedTime + '!</div><div class="actions"><a href="/" class="btn btn-rebook">BACK TO BOOKING</a></div>';
-      document.getElementById('reschedule-form').style.display = 'none';
+      document.getElementById('reschedule-section').style.display = 'none';
+      document.getElementById('action-area').innerHTML =
+        '<div class="card"><div class="success-msg">Rescheduled to ' + formattedDate + ' at ' + selTime + '!</div>' +
+        '<a href="/" class="btn btn-rebook" style="display:block;text-align:center;text-decoration:none">BACK TO BOOKING</a></div>';
       loadBooking();
     } else {
-      alert('Error: ' + (data.error || 'Could not reschedule.'));
+      alert('Error: ' + (data.error || 'Could not reschedule. Please try again.'));
+      btn.disabled = false;
+      btn.textContent = 'CONFIRM RESCHEDULE';
     }
   })
-  .catch(function() { alert('Something went wrong. Please try again.'); });
+  .catch(function() {
+    alert('Something went wrong. Please try again.');
+    btn.disabled = false;
+    btn.textContent = 'CONFIRM RESCHEDULE';
+  });
 }
 
 function cancelBooking() {
@@ -191,10 +426,13 @@ function cancelBooking() {
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (data.success) {
-      document.getElementById('actions').innerHTML = '<div class="success-msg">Your booking has been cancelled.</div><div class="actions"><a href="/" class="btn btn-rebook">BOOK A NEW SESSION</a></div>';
+      document.getElementById('reschedule-section').style.display = 'none';
+      document.getElementById('action-area').innerHTML =
+        '<div class="card"><div class="success-msg">Your booking has been cancelled.</div>' +
+        '<a href="/" class="btn btn-rebook" style="display:block;text-align:center;text-decoration:none">BOOK A NEW SESSION</a></div>';
       loadBooking();
     } else {
-      alert('Error: ' + (data.error || 'Could not cancel.'));
+      alert('Error: ' + (data.error || 'Could not cancel. Please try again.'));
     }
   })
   .catch(function() { alert('Something went wrong. Please try again.'); });
