@@ -46,10 +46,14 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // Parse new date+time into ISO timestamp for portal's starts_at column
+    var newStartsAt = new Date(new_date + ' ' + new_time).toISOString()
+
     var updateResult = await supabaseAdmin
       .from('bookings')
       .update({
         booking_date: newBookingDate,
+        starts_at: newStartsAt,
         status: 'Confirmed',
         reminder_24h_sent: false,
         reminder_2h_sent: false

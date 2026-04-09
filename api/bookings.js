@@ -43,12 +43,18 @@ module.exports = async function handler(req, res) {
 
     // ── STEP 1: Insert into bookings table ──
     var bookingDate = date + ' ' + time
+    // Parse date+time into ISO timestamp for portal's starts_at column
+    // Date comes as "APR 5, 2026", time as "7:00 PM"
+    var startsAt = new Date(date + ' ' + time).toISOString()
+
     var bookingPayload = {
       lead_name: name,
       phone: phoneE164,
       email: email,
       booking_date: bookingDate,
+      service: session_name || session_type,
       service_type: session_name || session_type,
+      starts_at: startsAt,
       status: 'Confirmed',
       source: 'book.theflexfacility.com',
       created_at: new Date().toISOString()
