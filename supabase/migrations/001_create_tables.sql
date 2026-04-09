@@ -28,6 +28,7 @@ ON CONFLICT (slug) DO NOTHING;
 -- ═══════════════════════════════════════
 -- 2. LEADS TABLE
 -- Contacts/leads from booking flow
+-- If table already exists, add missing columns
 -- ═══════════════════════════════════════
 CREATE TABLE IF NOT EXISTS leads (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -46,6 +47,21 @@ CREATE TABLE IF NOT EXISTS leads (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Add columns that may be missing if the table already existed
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS source TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS funnel TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'New';
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS opted_out BOOLEAN DEFAULT FALSE;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS nudge_count INTEGER DEFAULT 0;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS last_nudge_sent TIMESTAMPTZ;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS booked_at TIMESTAMPTZ;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
 -- Index for phone lookup (duplicate check)
 CREATE INDEX IF NOT EXISTS idx_leads_phone ON leads(phone);
 -- Index for client filtering
@@ -56,6 +72,7 @@ CREATE INDEX IF NOT EXISTS idx_leads_nudge ON leads(opted_out, nudge_count, book
 -- ═══════════════════════════════════════
 -- 3. BOOKINGS TABLE
 -- All booking records
+-- If table already exists, add missing columns
 -- ═══════════════════════════════════════
 CREATE TABLE IF NOT EXISTS bookings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -72,6 +89,20 @@ CREATE TABLE IF NOT EXISTS bookings (
   reminder_2h_sent BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add columns that may be missing if the table already existed
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS lead_id UUID REFERENCES leads(id);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS lead_name TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_date TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS service_type TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Confirmed';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'book.theflexfacility.com';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS reminder_24h_sent BOOLEAN DEFAULT FALSE;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS reminder_2h_sent BOOLEAN DEFAULT FALSE;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Index for status filtering (reminders, slot counts)
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
@@ -93,6 +124,13 @@ CREATE TABLE IF NOT EXISTS time_slots (
   booked_by_lead_id UUID REFERENCES leads(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE time_slots ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id);
+ALTER TABLE time_slots ADD COLUMN IF NOT EXISTS slot_date DATE;
+ALTER TABLE time_slots ADD COLUMN IF NOT EXISTS slot_time TIME;
+ALTER TABLE time_slots ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE;
+ALTER TABLE time_slots ADD COLUMN IF NOT EXISTS booked_by_lead_id UUID REFERENCES leads(id);
+ALTER TABLE time_slots ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Unique constraint: one slot per date+time per client
 CREATE UNIQUE INDEX IF NOT EXISTS idx_time_slots_unique
@@ -134,6 +172,12 @@ CREATE TABLE IF NOT EXISTS sms_log (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE sms_log ADD COLUMN IF NOT EXISTS to_number TEXT;
+ALTER TABLE sms_log ADD COLUMN IF NOT EXISTS message_body TEXT;
+ALTER TABLE sms_log ADD COLUMN IF NOT EXISTS event_type TEXT;
+ALTER TABLE sms_log ADD COLUMN IF NOT EXISTS status TEXT;
+ALTER TABLE sms_log ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
 CREATE INDEX IF NOT EXISTS idx_sms_log_event_type ON sms_log(event_type);
 
 -- ═══════════════════════════════════════
@@ -147,7 +191,10 @@ ALTER TABLE time_slots ENABLE ROW LEVEL SECURITY;
 ALTER TABLE availability_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sms_log ENABLE ROW LEVEL SECURITY;
 
--- Service role bypasses RLS automatically.
+-- Drop policies first if they exist (safe re-run)
+DROP POLICY IF EXISTS "Public can read available time slots" ON time_slots;
+DROP POLICY IF EXISTS "Public can read clients" ON clients;
+
 -- For anon key access (frontend), allow reading available time slots:
 CREATE POLICY "Public can read available time slots"
   ON time_slots FOR SELECT
@@ -167,7 +214,13 @@ CREATE POLICY "Public can read clients"
 -- Enable realtime on time_slots for live
 -- calendar updates on book.theflexfacility.com
 -- ═══════════════════════════════════════
-ALTER PUBLICATION supabase_realtime ADD TABLE time_slots;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE time_slots;
+EXCEPTION WHEN duplicate_object THEN
+  -- Table already in publication, skip
+  NULL;
+END $$;
 
 -- ═══════════════════════════════════════
 -- 9. SEED: DEFAULT AVAILABILITY TEMPLATES
@@ -181,10 +234,6 @@ DECLARE
   v_client_id UUID;
 BEGIN
   SELECT id INTO v_client_id FROM clients WHERE slug = 'flex-facility';
-
-  -- Athlete Assessment slots (Sun 8:30, Mon-Wed 7:00 PM)
-  -- Note: These are managed separately per session type in the app.
-  -- The templates represent the facility's general availability.
 
   -- Sunday
   INSERT INTO availability_templates (client_id, day_of_week, start_time, end_time, slot_duration_minutes, is_active)
@@ -246,9 +295,8 @@ BEGIN
 END $$;
 
 -- ═══════════════════════════════════════
--- DONE
+-- DONE — Verify tables:
 -- ═══════════════════════════════════════
--- Verify tables were created:
--- SELECT table_name FROM information_schema.tables
--- WHERE table_schema = 'public'
--- ORDER BY table_name;
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
+ORDER BY table_name;
