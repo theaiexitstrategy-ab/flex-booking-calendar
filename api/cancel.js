@@ -1,4 +1,4 @@
-var supabase = require('../lib/supabase')
+var supabaseAdmin = require('../lib/supabaseAdmin')
 var smsUtils = require('./utils/sendSms')
 var sendSms = smsUtils.sendSms
 
@@ -19,8 +19,8 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'booking_id is required' })
     }
 
-    var fetchResult = await supabase
-      .from('bookings_master')
+    var fetchResult = await supabaseAdmin
+      .from('bookings')
       .select('*')
       .eq('id', booking_id)
       .single()
@@ -31,8 +31,8 @@ module.exports = async function handler(req, res) {
 
     var booking = fetchResult.data
 
-    var updateResult = await supabase
-      .from('bookings_master')
+    var updateResult = await supabaseAdmin
+      .from('bookings')
       .update({ status: 'Cancelled' })
       .eq('id', booking_id)
       .select()
@@ -40,22 +40,36 @@ module.exports = async function handler(req, res) {
 
     if (updateResult.error) throw updateResult.error
 
-    // Get contact info — handle both column naming patterns
-    var phone = booking.phone || booking.contact_phone || ''
-    var name = booking.first_name ? (booking.first_name + ' ' + (booking.last_name || '')) : (booking.name || booking.contact_name || '')
-    var firstName = (booking.first_name || name.split(' ')[0] || '')
-    var bDate = booking.booking_date || booking.date || ''
-    var bTime = booking.booking_time || booking.time || ''
+    // Re-open the time slot if applicable
+    if (booking.lead_id) {
+      try {
+        await supabaseAdmin
+          .from('time_slots')
+          .update({ is_available: true, booked_by_lead_id: null })
+          .eq('booked_by_lead_id', booking.lead_id)
+      } catch (slotErr) {
+        console.error('Slot reopen error (non-blocking):', slotErr.message)
+      }
+    }
+
+    var phone = booking.phone || ''
+    var name = booking.lead_name || ''
+    var firstName = name.split(' ')[0] || ''
+    // Parse date/time from booking_date field ("APR 5, 2026 7:00 PM")
+    var bookingDate = booking.booking_date || ''
+    var dateParts = bookingDate.match(/^(\w+ \d+, \d{4})\s*(.*)$/)
+    var bDate = dateParts ? dateParts[1] : bookingDate
+    var bTime = dateParts ? dateParts[2] : ''
 
     try {
       await Promise.all([
         sendSms({
           to: phone,
-          body: 'Hey ' + firstName + ', your session at The Flex Facility on ' + bDate + ' has been cancelled. Want to rebook? Head to book.theflexfacility.com 🙌🏾',
+          body: 'Hi ' + firstName + ', your appointment at The Flex Facility on ' + bDate + ' has been cancelled. Please call 1-877-515-FLEX to reschedule.',
           eventType: 'cancel'
         }),
         sendSms({
-          to: process.env.COACH_KENNY_PHONE || phone,
+          to: process.env.COACH_KENNY_PHONE || '3149102203',
           body: 'Cancellation: ' + name.trim() + ' cancelled their ' + bDate + ' at ' + bTime + ' session.',
           eventType: 'cancel'
         })

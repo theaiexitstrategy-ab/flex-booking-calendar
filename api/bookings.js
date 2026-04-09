@@ -1,7 +1,9 @@
-var supabase = require('../lib/supabase')
+var supabaseAdmin = require('../lib/supabaseAdmin')
 var smsUtils = require('./utils/sendSms')
 var sendSms = smsUtils.sendSms
 var formatE164 = smsUtils.formatE164
+
+var FLEX_FACILITY_SLUG = process.env.NEXT_PUBLIC_FLEX_FACILITY_SLUG || 'flex-facility'
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -22,112 +24,161 @@ module.exports = async function handler(req, res) {
     var session_name = body.session_name || ''
     var date = body.date || ''
     var time = body.time || ''
-    var nameParts = name.split(' ')
-    var firstName = nameParts[0] || ''
-    var lastName = nameParts.slice(1).join(' ') || ''
-    var segment = (session_type === 'lifestyle' || session_type === 'body')
-      ? 'lifestyle' : 'athlete'
+    var firstName = name.split(' ')[0] || ''
     var phoneE164 = formatE164(phone)
 
-    // 1. Upsert contact — use first_name/last_name per actual schema
-    var contactId = null
+    // Look up flex-facility client_id
+    var clientId = null
     try {
-      var contactResult = await supabase
-        .from('contacts_master')
-        .upsert({
-          first_name: firstName,
-          last_name: lastName,
-          email: email,
-          phone: phoneE164,
-          contact_type: 'Lead',
-          segment: segment
-        }, { onConflict: 'email' })
+      var clientResult = await supabaseAdmin
+        .from('clients')
         .select('id')
+        .eq('slug', FLEX_FACILITY_SLUG)
         .single()
-
-      if (contactResult.data) contactId = contactResult.data.id
-      if (contactResult.error) console.error('Contact upsert error:', JSON.stringify(contactResult.error))
+      if (clientResult.data) clientId = clientResult.data.id
     } catch (ce) {
-      console.error('Contact exception:', ce.message)
+      console.error('Client lookup error:', ce.message)
     }
 
-    // 2. Insert booking — try multiple column name patterns
-    //    since we don't know the exact schema
-    var bookingRow = null
-    var bookingError = null
-
-    // Attempt 1: common column names matching contacts pattern
-    var attempt1 = await supabase.from('bookings_master').insert({
-      contact_id: contactId,
-      first_name: firstName,
-      last_name: lastName,
-      email: email,
-      phone: phoneE164,
-      session_type: session_type,
-      session_name: session_name,
-      booking_date: date,
-      booking_time: time,
-      status: 'Scheduled',
-      segment: segment
-    }).select().single()
-
-    if (!attempt1.error) {
-      bookingRow = attempt1.data
-    } else {
-      console.error('Booking attempt 1 error:', JSON.stringify(attempt1.error))
-
-      // Attempt 2: even more minimal — just the fields most likely to exist
-      var attempt2 = await supabase.from('bookings_master').insert({
-        contact_id: contactId,
-        name: name,
-        email: email,
+    // ── STEP 1: Insert into bookings table ──
+    var bookingDate = date + ' ' + time
+    var bookingResult = await supabaseAdmin
+      .from('bookings')
+      .insert({
+        client_id: clientId,
+        lead_name: name,
         phone: phoneE164,
-        session_type: session_type,
-        date: date,
-        time: time,
-        status: 'Scheduled',
-        segment: segment
-      }).select().single()
+        email: email,
+        booking_date: bookingDate,
+        service_type: session_name || session_type,
+        status: 'Confirmed',
+        source: 'book.theflexfacility.com',
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single()
 
-      if (!attempt2.error) {
-        bookingRow = attempt2.data
-      } else {
-        console.error('Booking attempt 2 error:', JSON.stringify(attempt2.error))
-
-        // Attempt 3: absolute minimum
-        var attempt3 = await supabase.from('bookings_master').insert({
-          contact_id: contactId,
-          status: 'Scheduled'
-        }).select().single()
-
-        if (!attempt3.error) {
-          bookingRow = attempt3.data
-        } else {
-          bookingError = attempt3.error
-          console.error('Booking attempt 3 error:', JSON.stringify(attempt3.error))
-        }
-      }
+    if (bookingResult.error) {
+      console.error('Booking insert error:', JSON.stringify(bookingResult.error))
+      throw new Error(bookingResult.error.message || 'Failed to insert booking')
     }
 
-    if (bookingError && !bookingRow) {
-      throw new Error(bookingError.message || 'Failed to insert booking after 3 attempts')
-    }
-
-    // 3. Send SMS (fire-and-forget)
+    var bookingRow = bookingResult.data
     var bookingId = bookingRow ? bookingRow.id : ''
+
+    // ── STEP 2: Upsert into leads table ──
+    var leadId = null
+    try {
+      // Check if phone already exists in leads
+      var existingLead = await supabaseAdmin
+        .from('leads')
+        .select('id')
+        .eq('phone', phoneE164)
+        .maybeSingle()
+
+      if (existingLead.data) {
+        // Update existing lead status
+        leadId = existingLead.data.id
+        await supabaseAdmin
+          .from('leads')
+          .update({
+            status: 'Ready to Book',
+            name: name,
+            email: email
+          })
+          .eq('id', leadId)
+      } else {
+        // Insert new lead
+        var leadResult = await supabaseAdmin
+          .from('leads')
+          .insert({
+            client_id: clientId,
+            name: name,
+            phone: phoneE164,
+            email: email,
+            source: 'book.theflexfacility.com',
+            funnel: 'booking',
+            status: 'Ready to Book',
+            tags: ['ready-to-book'],
+            created_at: new Date().toISOString()
+          })
+          .select('id')
+          .single()
+        if (leadResult.data) leadId = leadResult.data.id
+      }
+    } catch (le) {
+      console.error('Lead upsert error:', le.message)
+    }
+
+    // Update booking with lead_id if available
+    if (leadId && bookingId) {
+      await supabaseAdmin
+        .from('bookings')
+        .update({ lead_id: leadId })
+        .eq('id', bookingId)
+        .then(function() {})
+        .catch(function(err) { console.error('Booking lead_id update error:', err) })
+    }
+
+    // Mark time slot as unavailable if time_slots table exists
+    try {
+      await supabaseAdmin
+        .from('time_slots')
+        .update({
+          is_available: false,
+          booked_by_lead_id: leadId
+        })
+        .eq('client_id', clientId)
+        .eq('slot_date', date)
+        .eq('slot_time', time)
+    } catch (slotErr) {
+      console.error('Slot update error (non-blocking):', slotErr.message)
+    }
+
+    // ── STEP 3: POST to GoElev8 portal webhook ──
+    try {
+      var webhookSecret = process.env.GOELEV8_WEBHOOK_SECRET
+      if (webhookSecret) {
+        await fetch('https://portal.goelev8.ai/api/webhooks/lead', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goelev8-secret': webhookSecret
+          },
+          body: JSON.stringify({
+            slug: FLEX_FACILITY_SLUG,
+            name: name,
+            phone: phoneE164,
+            email: email,
+            source: 'book.theflexfacility.com',
+            funnel: 'booking',
+            metadata: {
+              booking_date: bookingDate,
+              service_type: session_name || session_type
+            }
+          })
+        })
+      }
+    } catch (whErr) {
+      console.error('GoElev8 webhook error (non-blocking):', whErr.message)
+    }
+
+    // ── STEP 4 & 5: Send Twilio SMS ──
     var baseUrl = process.env.SITE_URL || 'https://book.theflexfacility.com'
     var manageUrl = baseUrl + '/manage.html?id=' + bookingId
 
     try {
       await Promise.all([
+        // STEP 4: SMS to booker
         sendSms({
           to: phone,
-          body: 'Hey ' + firstName + '! 👊🏾 Your session at The Flex Facility is confirmed for ' + date + ' at ' + time + '. Coach Kenny is ready to work.\n\nNeed to reschedule or cancel? ' + manageUrl + '\n\nReply STOP to opt out.',
+          body: 'Hi ' + firstName + '! Your appointment with The Flex Facility is confirmed for ' + date + ' at ' + time + '. Questions? Call or text 1-877-515-FLEX \uD83D\uDC4A\uD83C\uDFFE\n- Coach Kenny\n\nManage booking: ' + manageUrl + '\n\nReply STOP to opt out.',
           eventType: 'booking'
         }),
+        // STEP 5: SMS to Coach Kenny
         sendSms({
-          to: process.env.COACH_KENNY_PHONE || phone,
-          body: 'New booking: ' + name + ' — ' + date + ' at ' + time + '. Service: ' + session_name + '. Phone: ' + phone + '.',
+          to: process.env.COACH_KENNY_PHONE || '3149102203',
+          body: 'New booking! ' + name + ' just booked for ' + date + ' at ' + time + '. View in portal: portal.goelev8.ai',
           eventType: 'booking'
         })
       ])
@@ -137,8 +188,8 @@ module.exports = async function handler(req, res) {
 
     return res.status(201).json({
       success: true,
-      message: 'Booking saved and confirmation SMS sent',
-      data: { booking_id: bookingRow ? bookingRow.id : null, contact_id: contactId }
+      message: 'Booking confirmed — SMS sent',
+      data: { booking_id: bookingId, lead_id: leadId }
     })
   } catch (err) {
     console.error('Booking API error:', err.message)

@@ -1,4 +1,4 @@
-var supabase = require('../lib/supabase')
+var supabaseAdmin = require('../lib/supabaseAdmin')
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -16,8 +16,8 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    var result = await supabase
-      .from('bookings_master')
+    var result = await supabaseAdmin
+      .from('bookings')
       .select('*')
       .eq('id', id)
       .single()

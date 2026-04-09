@@ -1,4 +1,4 @@
-const supabase = require('../../lib/supabase')
+const supabaseAdmin = require('../../lib/supabaseAdmin')
 
 function formatE164(phone) {
   const digits = phone.replace(/\D/g, '')
@@ -11,7 +11,7 @@ function formatE164(phone) {
 async function sendSms({ to, body, eventType = 'general' }) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER
+  const fromNumber = process.env.TWILIO_FROM_NUMBER || process.env.TWILIO_PHONE_NUMBER
 
   if (!accountSid || !authToken || !fromNumber) {
     console.error('Missing Twilio environment variables')
@@ -39,7 +39,7 @@ async function sendSms({ to, body, eventType = 'general' }) {
 
     const result = await response.json()
 
-    await supabase.from('sms_log').insert({
+    await supabaseAdmin.from('sms_log').insert({
       to_number: toFormatted,
       message_body: body,
       event_type: eventType,
@@ -56,7 +56,7 @@ async function sendSms({ to, body, eventType = 'general' }) {
   } catch (err) {
     console.error('SMS send error:', err)
 
-    await supabase.from('sms_log').insert({
+    await supabaseAdmin.from('sms_log').insert({
       to_number: toFormatted,
       message_body: body,
       event_type: eventType,

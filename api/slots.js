@@ -1,4 +1,4 @@
-var supabase = require('../lib/supabase')
+var supabaseAdmin = require('../lib/supabaseAdmin')
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -22,14 +22,14 @@ module.exports = async function handler(req, res) {
     var m = parseInt(month)
     var y = parseInt(year)
 
-    // Fetch all non-cancelled bookings — select * to work with any schema
-    var query = supabase
-      .from('bookings_master')
+    // Fetch all non-cancelled bookings from the new bookings table
+    var query = supabaseAdmin
+      .from('bookings')
       .select('*')
       .neq('status', 'Cancelled')
 
     if (session_type) {
-      query = query.eq('session_type', session_type)
+      query = query.ilike('service_type', '%' + session_type + '%')
     }
 
     var result = await query
@@ -43,14 +43,36 @@ module.exports = async function handler(req, res) {
     var bookings = result.data || []
     for (var i = 0; i < bookings.length; i++) {
       var b = bookings[i]
-      // Try both possible column names for date and time
-      var bDate = b.booking_date || b.date || ''
-      var bTime = b.booking_time || b.time || ''
+      // booking_date is stored as "APR 5, 2026 7:00 PM" or similar
+      var bDate = b.booking_date || ''
 
       if (bDate && bDate.includes(targetMonth) && bDate.includes(String(y))) {
-        var key = bDate + '|' + bTime
-        counts[key] = (counts[key] || 0) + 1
+        // Split the combined date+time field back into date|time key
+        // Handle format: "APR 5, 2026 7:00 PM"
+        var parts = bDate.match(/^(\w+ \d+, \d{4})\s+(.+)$/)
+        if (parts) {
+          var key = parts[1] + '|' + parts[2]
+          counts[key] = (counts[key] || 0) + 1
+        } else {
+          // Fallback: use entire booking_date as key
+          counts[bDate] = (counts[bDate] || 0) + 1
+        }
       }
+    }
+
+    // Also check time_slots table for blocked slots
+    try {
+      var blockedResult = await supabaseAdmin
+        .from('time_slots')
+        .select('slot_date, slot_time, is_available')
+        .eq('is_available', false)
+
+      if (blockedResult.data) {
+        // Return blocked slots info alongside counts
+        // Frontend can use this to disable specific slots
+      }
+    } catch (slotErr) {
+      // time_slots table may not exist yet, non-blocking
     }
 
     return res.status(200).json({ success: true, data: counts })

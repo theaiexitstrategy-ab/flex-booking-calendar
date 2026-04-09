@@ -63,15 +63,16 @@ Deno.serve(async () => {
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const twilioSid = Deno.env.get('TWILIO_ACCOUNT_SID')!
   const twilioToken = Deno.env.get('TWILIO_AUTH_TOKEN')!
-  const twilioFrom = Deno.env.get('TWILIO_PHONE_NUMBER')!
+  const twilioFrom = Deno.env.get('TWILIO_FROM_NUMBER') || Deno.env.get('TWILIO_PHONE_NUMBER')!
 
   const supabase = createClient(supabaseUrl, supabaseKey)
 
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
 
-  const { data: contacts, error: queryErr } = await supabase
-    .from('contacts_master')
-    .select('id, full_name, phone, nudge_count, last_nudge_sent')
+  // Query leads table (migrated from contacts_master)
+  const { data: leads, error: queryErr } = await supabase
+    .from('leads')
+    .select('id, name, phone, nudge_count, last_nudge_sent')
     .not('phone', 'is', null)
     .eq('opted_out', false)
     .lt('nudge_count', 5)
@@ -83,22 +84,22 @@ Deno.serve(async () => {
     return new Response(JSON.stringify({ error: queryErr.message }), { status: 500 })
   }
 
-  if (!contacts || contacts.length === 0) {
-    return new Response(JSON.stringify({ message: 'No contacts to nudge', sent: 0 }))
+  if (!leads || leads.length === 0) {
+    return new Response(JSON.stringify({ message: 'No leads to nudge', sent: 0 }))
   }
 
   let sentCount = 0
   const errors: string[] = []
 
-  for (const contact of contacts) {
-    const firstName = contact.full_name.split(' ')[0]
-    const nudgeIndex = (contact.nudge_count || 0) % 3
+  for (const lead of leads) {
+    const firstName = (lead.name || '').split(' ')[0]
+    const nudgeIndex = (lead.nudge_count || 0) % 3
     const message = NUDGE_MESSAGES[nudgeIndex](firstName)
 
-    const result = await sendSms(contact.phone, message, twilioSid, twilioToken, twilioFrom)
+    const result = await sendSms(lead.phone, message, twilioSid, twilioToken, twilioFrom)
 
     await supabase.from('sms_log').insert({
-      to_number: formatE164(contact.phone),
+      to_number: formatE164(lead.phone),
       message_body: message,
       event_type: 'nudge',
       status: result.success ? 'sent' : 'failed',
@@ -107,25 +108,25 @@ Deno.serve(async () => {
 
     if (result.success) {
       await supabase
-        .from('contacts_master')
+        .from('leads')
         .update({
-          nudge_count: (contact.nudge_count || 0) + 1,
+          nudge_count: (lead.nudge_count || 0) + 1,
           last_nudge_sent: new Date().toISOString(),
         })
-        .eq('id', contact.id)
+        .eq('id', lead.id)
 
       sentCount++
     } else {
-      errors.push(`Failed for ${contact.full_name}: ${result.error}`)
+      errors.push(`Failed for ${lead.name}: ${result.error}`)
     }
   }
 
-  console.log(`Nudge complete: ${sentCount}/${contacts.length} sent`)
+  console.log(`Nudge complete: ${sentCount}/${leads.length} sent`)
 
   return new Response(
     JSON.stringify({
       message: 'Nudge sequence complete',
-      total: contacts.length,
+      total: leads.length,
       sent: sentCount,
       errors: errors.length > 0 ? errors : undefined,
     }),
