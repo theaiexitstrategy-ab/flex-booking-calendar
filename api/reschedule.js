@@ -1,4 +1,4 @@
-var supabase = require('../lib/supabase')
+var supabaseAdmin = require('../lib/supabaseAdmin')
 var smsUtils = require('./utils/sendSms')
 var sendSms = smsUtils.sendSms
 
@@ -21,8 +21,8 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'booking_id, new_date, and new_time are required' })
     }
 
-    var fetchResult = await supabase
-      .from('bookings_master')
+    var fetchResult = await supabaseAdmin
+      .from('bookings')
       .select('*')
       .eq('id', booking_id)
       .single()
@@ -32,31 +32,51 @@ module.exports = async function handler(req, res) {
     }
 
     var booking = fetchResult.data
+    var newBookingDate = new_date + ' ' + new_time
 
-    // Build update — try both column name patterns
-    var updateData = { status: 'Rescheduled' }
-    // Set both possible date/time columns
-    if (booking.booking_date !== undefined) { updateData.booking_date = new_date; updateData.booking_time = new_time; }
-    if (booking.date !== undefined) { updateData.date = new_date; updateData.time = new_time; }
-    // If neither existed, set both and let Supabase pick what works
-    if (booking.booking_date === undefined && booking.date === undefined) {
-      updateData.booking_date = new_date;
-      updateData.booking_time = new_time;
+    // Re-open old time slot
+    if (booking.lead_id) {
+      try {
+        await supabaseAdmin
+          .from('time_slots')
+          .update({ is_available: true, booked_by_lead_id: null })
+          .eq('booked_by_lead_id', booking.lead_id)
+      } catch (slotErr) {
+        console.error('Old slot reopen error (non-blocking):', slotErr.message)
+      }
     }
 
-    var updateResult = await supabase
-      .from('bookings_master')
-      .update(updateData)
+    var updateResult = await supabaseAdmin
+      .from('bookings')
+      .update({
+        booking_date: newBookingDate,
+        status: 'Confirmed',
+        reminder_24h_sent: false,
+        reminder_2h_sent: false
+      })
       .eq('id', booking_id)
       .select()
       .single()
 
     if (updateResult.error) throw updateResult.error
 
-    // Get contact info — handle both column naming patterns
-    var phone = booking.phone || booking.contact_phone || ''
-    var name = booking.first_name ? (booking.first_name + ' ' + (booking.last_name || '')) : (booking.name || booking.contact_name || '')
-    var firstName = (booking.first_name || name.split(' ')[0] || '')
+    // Block new time slot
+    if (booking.lead_id && booking.client_id) {
+      try {
+        await supabaseAdmin
+          .from('time_slots')
+          .update({ is_available: false, booked_by_lead_id: booking.lead_id })
+          .eq('client_id', booking.client_id)
+          .eq('slot_date', new_date)
+          .eq('slot_time', new_time)
+      } catch (slotErr) {
+        console.error('New slot block error (non-blocking):', slotErr.message)
+      }
+    }
+
+    var phone = booking.phone || ''
+    var name = booking.lead_name || ''
+    var firstName = name.split(' ')[0] || ''
     var baseUrl = process.env.SITE_URL || 'https://book.theflexfacility.com'
     var manageUrl = baseUrl + '/manage.html?id=' + booking_id
 
@@ -64,12 +84,12 @@ module.exports = async function handler(req, res) {
       await Promise.all([
         sendSms({
           to: phone,
-          body: 'Hey ' + firstName + '! Your session at The Flex Facility has been rescheduled to ' + new_date + ' at ' + new_time + '. See you then! 💪🏾\n\nNeed to make another change? ' + manageUrl,
+          body: 'Hi ' + firstName + '! Your appointment has been rescheduled to ' + new_date + ' at ' + new_time + '. Questions? Call 1-877-515-FLEX \uD83D\uDC4A\uD83C\uDFFE\n\nManage booking: ' + manageUrl,
           eventType: 'reschedule'
         }),
         sendSms({
-          to: process.env.COACH_KENNY_PHONE || phone,
-          body: 'Reschedule: ' + name.trim() + ' moved to ' + new_date + ' at ' + new_time + '.',
+          to: process.env.COACH_KENNY_PHONE || '3149102203',
+          body: 'Reschedule: ' + name.trim() + ' moved to ' + new_date + ' at ' + new_time + '. View in portal: portal.goelev8.ai',
           eventType: 'reschedule'
         })
       ])

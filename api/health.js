@@ -1,18 +1,18 @@
-const supabase = require('../lib/supabase')
+var supabaseAdmin = require('../lib/supabaseAdmin')
 
 module.exports = async function handler(req, res) {
   try {
-    const { data, error } = await supabase
-      .from('contacts_master')
+    var result = await supabaseAdmin
+      .from('bookings')
       .select('id')
       .limit(1)
 
-    if (error) throw error
+    if (result.error) throw result.error
 
     return res.status(200).json({
       success: true,
       message: 'Supabase connection confirmed',
-      data
+      data: result.data
     })
   } catch (err) {
     return res.status(500).json({

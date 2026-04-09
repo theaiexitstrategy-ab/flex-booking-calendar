@@ -202,11 +202,14 @@ function loadBooking() {
 
 function renderBooking() {
   var b = bookingData;
-  var name = b.first_name ? (b.first_name + ' ' + (b.last_name || '')) : (b.name || b.contact_name || 'Unknown');
-  var date = b.booking_date || b.date || '';
-  var time = b.booking_time || b.time || '';
-  var session = b.session_name || b.session_type || '';
-  var status = b.status || 'Scheduled';
+  var name = b.lead_name || b.name || 'Unknown';
+  // booking_date is stored as "APR 5, 2026 7:00 PM"
+  var fullDate = b.booking_date || '';
+  var dateParts = fullDate.match(/^(\w+ \d+, \d{4})\s*(.*)$/);
+  var date = dateParts ? dateParts[1] : fullDate;
+  var time = dateParts ? dateParts[2] : '';
+  var session = b.service_type || b.session_type || '';
+  var status = b.status || 'Confirmed';
   var isCancelled = status === 'Cancelled';
 
   document.getElementById('content').style.display = 'block';
@@ -245,8 +248,10 @@ function showReschedule() {
 
 function getSessionType() {
   if (!bookingData) return 'athlete';
-  var st = bookingData.session_type || '';
-  if (st === 'lifestyle' || st === 'body' || st === 'bodybuilding') return st;
+  var st = bookingData.service_type || bookingData.session_type || '';
+  st = st.toLowerCase();
+  if (st.includes('lifestyle') || st.includes('physique')) return 'lifestyle';
+  if (st.includes('bodybuilding')) return 'bodybuilding';
   return 'athlete';
 }
 

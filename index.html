@@ -202,6 +202,8 @@
     .success-card{padding:36px 28px}
   }
 </style>
+<!-- Supabase Realtime for live slot updates -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-6T75SN79LV"></script>
 <script>
@@ -401,16 +403,23 @@
 <!-- SUCCESS -->
 <div class="success-overlay" id="success-overlay">
   <div class="success-card">
-    <div class="success-icon">✓</div>
-    <div class="success-title">YOU'RE BOOKED!</div>
-    <div class="success-sub" id="success-msg">Your session is confirmed. Check your phone for a confirmation text.</div>
+    <div class="success-icon" style="animation: checkpop 0.6s cubic-bezier(0.34,1.56,0.64,1)">✓</div>
+    <div class="success-title">BOOKING CONFIRMED!</div>
+    <div class="success-sub">
+      <strong id="success-name"></strong><br>
+      <span id="success-datetime" style="color:var(--accent-gold);font-weight:600"></span><br><br>
+      You'll receive a confirmation text shortly.<br>
+      <span style="color:var(--muted);font-size:13px">Questions? Call or text <strong style="color:var(--white)">1-877-515-FLEX</strong></span>
+    </div>
     <div class="success-actions">
       <button class="btn-primary" onclick="addToCalendar('google')">ADD TO GOOGLE CALENDAR</button>
       <button class="btn-primary" onclick="addToCalendar('apple')" style="background:#111;color:white;border:1px solid rgba(255,255,255,0.15)">ADD TO APPLE CALENDAR</button>
       <button class="btn-secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">Done</button>
     </div>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);letter-spacing:1px">POWERED BY GOELEV8.AI</div>
   </div>
 </div>
+<style>@keyframes checkpop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -734,31 +743,26 @@ function submitBooking() {
   btn.disabled = true;
   document.getElementById('btn-text').textContent = 'SENDING...';
 
-  // Send to Make.com webhook AND Supabase + Twilio SMS in parallel
-  var webhookPromise = fetch('https://hook.us2.make.com/mkvrxsygnt9962r3odkpigk4k2qiienq', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  // Write to Supabase + trigger confirmation SMS via /api/bookings
+  // Write to Supabase + leads + portal webhook + SMS via /api/bookings
   fetch('/api/bookings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
-  }).then(function(r) { return r.json(); })
-    .then(function(data) { console.log('Supabase booking + SMS:', data); })
-    .catch(function(err) { console.error('Supabase/SMS error:', err); });
-
-  webhookPromise
-  .then(function(response) {
-    if (!response.ok) throw new Error('Webhook returned ' + response.status);
-    document.getElementById('success-msg').textContent =
-      'Your ' + s.name + ' on ' + mo + ' ' + selDate.d + ' at ' + selTime + ' is confirmed! Coach Kenny\'s team will reach out shortly. Check your phone for a confirmation text.';
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data.success) throw new Error(data.error || 'Booking failed');
+    console.log('Booking confirmed:', data);
+    document.getElementById('success-name').textContent = name;
+    document.getElementById('success-datetime').textContent = mo + ' ' + selDate.d + ', ' + selDate.y + ' at ' + selTime;
     document.getElementById('success-overlay').classList.add('show');
+    // Redirect to thank-you page after 6 seconds
+    setTimeout(function() {
+      window.location.href = 'https://theflexfacility.com/thank-you?name=' + encodeURIComponent(name) + '&date=' + encodeURIComponent(mo + ' ' + selDate.d + ', ' + selDate.y + ' at ' + selTime);
+    }, 6000);
   })
   .catch(function(err) {
-    console.error('Booking webhook error:', err);
+    console.error('Booking error:', err);
     alert('Something went wrong sending your booking. Please try again.');
   })
   .finally(function() {
@@ -867,6 +871,28 @@ window.sq = sq;
 renderInfo('athlete');
 renderCalendar();
 setTimeout(function() { document.getElementById('ai-notif').style.display = 'flex'; }, 8000);
+
+// ── Supabase Realtime: live slot updates ──
+// When Coach Kenny changes availability in the portal, slots update here instantly
+try {
+  var supabaseUrl = 'https://bnkoqybkmwtrlorhowyv.supabase.co';
+  var supabaseAnonKey = (document.querySelector('meta[name="supabase-anon-key"]') || {}).content || '';
+  if (typeof supabase !== 'undefined' && supabaseAnonKey) {
+    var sbClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+    sbClient
+      .channel('time_slots_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'time_slots' }, function(payload) {
+        console.log('Realtime slot update:', payload);
+        // Re-fetch slot counts to reflect changes
+        fetchSlotCounts();
+      })
+      .subscribe();
+    console.log('Supabase Realtime subscribed to time_slots');
+  }
+} catch (rtErr) {
+  console.log('Realtime subscription not available:', rtErr.message);
+}
+
 }); // end DOMContentLoaded
 </script>
 </body>
