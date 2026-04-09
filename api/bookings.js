@@ -34,27 +34,31 @@ module.exports = async function handler(req, res) {
         .from('clients')
         .select('id')
         .eq('slug', FLEX_FACILITY_SLUG)
-        .single()
+        .maybeSingle()
       if (clientResult.data) clientId = clientResult.data.id
+      if (!clientId) console.log('No client found for slug:', FLEX_FACILITY_SLUG)
     } catch (ce) {
       console.error('Client lookup error:', ce.message)
     }
 
     // ── STEP 1: Insert into bookings table ──
     var bookingDate = date + ' ' + time
+    var bookingPayload = {
+      lead_name: name,
+      phone: phoneE164,
+      email: email,
+      booking_date: bookingDate,
+      service_type: session_name || session_type,
+      status: 'Confirmed',
+      source: 'book.theflexfacility.com',
+      created_at: new Date().toISOString()
+    }
+    // Only include client_id if we found one (avoids NOT NULL constraint errors)
+    if (clientId) bookingPayload.client_id = clientId
+
     var bookingResult = await supabaseAdmin
       .from('bookings')
-      .insert({
-        client_id: clientId,
-        lead_name: name,
-        phone: phoneE164,
-        email: email,
-        booking_date: bookingDate,
-        service_type: session_name || session_type,
-        status: 'Confirmed',
-        source: 'book.theflexfacility.com',
-        created_at: new Date().toISOString()
-      })
+      .insert(bookingPayload)
       .select()
       .single()
 
@@ -89,19 +93,21 @@ module.exports = async function handler(req, res) {
           .eq('id', leadId)
       } else {
         // Insert new lead
+        var leadPayload = {
+          name: name,
+          phone: phoneE164,
+          email: email,
+          source: 'book.theflexfacility.com',
+          funnel: 'booking',
+          status: 'Ready to Book',
+          tags: ['ready-to-book'],
+          created_at: new Date().toISOString()
+        }
+        if (clientId) leadPayload.client_id = clientId
+
         var leadResult = await supabaseAdmin
           .from('leads')
-          .insert({
-            client_id: clientId,
-            name: name,
-            phone: phoneE164,
-            email: email,
-            source: 'book.theflexfacility.com',
-            funnel: 'booking',
-            status: 'Ready to Book',
-            tags: ['ready-to-book'],
-            created_at: new Date().toISOString()
-          })
+          .insert(leadPayload)
           .select('id')
           .single()
         if (leadResult.data) leadId = leadResult.data.id
