@@ -872,6 +872,123 @@ renderInfo('athlete');
 renderCalendar();
 setTimeout(function() { document.getElementById('ai-notif').style.display = 'flex'; }, 8000);
 
+// ===========================================
+// LOAD SERVICES + SCHEDULES FROM PORTAL
+// ===========================================
+// The hardcoded SESSIONS object above is the safety-net fallback. In normal
+// operation we replace it with live data from /api/services (sourced from
+// the booking_services + availability_templates tables that the goelev8
+// portal Bookings tab manages). On any fetch / network / parse failure we
+// silently keep the hardcoded SESSIONS so the booking page never breaks —
+// the customer either sees the latest schedule or the last-known-good one.
+//
+// Day labels for the auto-generated infoRows (replaces the hand-written
+// "(closes 7)" annotations that were in the hardcoded version — those were
+// per-service display strings and not derivable from data alone).
+var DAY_LABELS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function buildInfoRowsFromSchedule(schedule) {
+  // schedule is { "0": [{startTime, endTime, displayTime}], ... }
+  // Returns the same { day, time } shape the existing renderInfo expects.
+  return DAY_LABELS.map(function(label, dow) {
+    var slots = schedule[String(dow)];
+    if (!slots || !slots.length) return { day: label, time: null };
+    var first = slots[0];
+    var last  = slots[slots.length - 1];
+    if (slots.length === 1) {
+      return { day: label, time: first.displayTime + ' – ' + formatTime12h(first.endTime) };
+    }
+    return { day: label, time: first.displayTime + ' – ' + formatTime12h(last.endTime) };
+  });
+}
+
+// Local copy of the same 12-hour formatter the API uses, so the widget can
+// generate end times for infoRows without making the SESSIONS shape leak
+// raw 24h strings.
+function formatTime12h(t) {
+  if (!t) return '';
+  var parts = String(t).split(':');
+  var h = parseInt(parts[0], 10);
+  var m = parts[1] || '00';
+  var period = h >= 12 ? 'PM' : 'AM';
+  var h12 = h % 12; if (h12 === 0) h12 = 12;
+  return h12 + ':' + m + ' ' + period;
+}
+
+function applyServicesFromApi(apiServices) {
+  // Mutate SESSIONS in place — keep the same object identity so anywhere
+  // else in the code that already captured a reference still works.
+  // Any keys present in API replace hardcoded; hardcoded keys not in API
+  // are removed (so a service deactivated in the portal disappears from
+  // the calendar).
+  var newKeys = {};
+  for (var i = 0; i < apiServices.length; i++) {
+    var s = apiServices[i];
+    if (!s.key) continue;
+    newKeys[s.key] = true;
+    SESSIONS[s.key] = {
+      name:        s.name,
+      fullName:    s.fullName,
+      btnText:     s.btnText || 'CONFIRM SESSION',
+      maxPerSlot:  s.maxPerSlot, // null = unlimited (matches existing convention)
+      infoTitle:   s.infoTitle,
+      infoNote:    s.infoNote,
+      // Convert API schedule shape to the { dow: [{ time, booked }] }
+      // shape the existing renderCalendar / pickDate code reads. `booked`
+      // is a placeholder that fetchSlotCounts() overwrites from /api/slots.
+      schedule:    (function() {
+        var sched = {};
+        var apiSched = s.schedule || {};
+        for (var dow in apiSched) {
+          if (!Object.prototype.hasOwnProperty.call(apiSched, dow)) continue;
+          sched[parseInt(dow, 10)] = apiSched[dow].map(function(slot) {
+            return { time: slot.displayTime, booked: 0 };
+          });
+        }
+        return sched;
+      })(),
+      infoRows:    buildInfoRowsFromSchedule(s.schedule || {})
+    };
+  }
+  // Drop hardcoded sessions that the API doesn't return (deactivated).
+  for (var key in SESSIONS) {
+    if (!Object.prototype.hasOwnProperty.call(SESSIONS, key)) continue;
+    if (!newKeys[key]) delete SESSIONS[key];
+  }
+  // If the currently selected session was removed, fall back to the first
+  // remaining one so the UI doesn't render against an empty SESSIONS[selType].
+  if (!SESSIONS[selType]) {
+    var firstKey = Object.keys(SESSIONS)[0];
+    if (firstKey) selType = firstKey;
+  }
+}
+
+(function loadServicesFromApi() {
+  fetch('/api/services')
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.success || !Array.isArray(res.services) || !res.services.length) {
+        console.log('[services] API returned no services, keeping hardcoded fallback');
+        return;
+      }
+      console.log('[services] Loaded', res.services.length, 'services from portal');
+      applyServicesFromApi(res.services);
+      // Re-render UI with the new data. selectSession() handles both
+      // info panel + calendar grid; calling it with the current selType
+      // (or a new one if the previous selection was removed) is the
+      // safest way to refresh everything in one shot.
+      try {
+        renderInfo(selType);
+        renderCalendar();
+      } catch (renderErr) {
+        console.error('[services] Re-render after API load failed:', renderErr);
+      }
+    })
+    .catch(function(err) {
+      console.log('[services] Fetch failed, keeping hardcoded fallback:', err && err.message);
+    });
+})();
+
 // ── Supabase Realtime: live slot updates ──
 // When Coach Kenny changes availability in the portal, slots update here instantly
 try {
