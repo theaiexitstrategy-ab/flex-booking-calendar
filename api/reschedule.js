@@ -2,6 +2,47 @@ var supabaseAdmin = require('../lib/supabaseAdmin')
 var smsUtils = require('./utils/sendSms')
 var sendSms = smsUtils.sendSms
 
+// Same wall-clock-in-tz parser as api/bookings.js. Avoids the
+// Vercel-UTC default that caused starts_at to lose 5 hours when
+// reschedules were submitted as bare "MAY 23, 2026 9:30 AM" strings.
+function parseWallClockInTz(input, tz) {
+  var MONTHS = {
+    JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5,
+    JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11
+  }
+  var m = String(input || '').toUpperCase().match(
+    /([A-Z]{3,9})\s+(\d{1,2}),?\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*(AM|PM)?/
+  )
+  if (!m) return new Date(input).toISOString()
+  var month = MONTHS[m[1].slice(0, 3)]
+  var day = parseInt(m[2], 10)
+  var year = parseInt(m[3], 10)
+  var hour = parseInt(m[4], 10)
+  var min = parseInt(m[5], 10)
+  var mer = m[6]
+  if (mer === 'PM' && hour < 12) hour += 12
+  if (mer === 'AM' && hour === 12) hour = 0
+  var naiveUtc = Date.UTC(year, month, day, hour, min, 0)
+  var fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  })
+  var parts = {}
+  fmt.formatToParts(new Date(naiveUtc)).forEach(function (p) {
+    if (p.type !== 'literal') parts[p.type] = p.value
+  })
+  var asTz = Date.UTC(
+    parseInt(parts.year, 10),
+    parseInt(parts.month, 10) - 1,
+    parseInt(parts.day, 10),
+    parseInt(parts.hour, 10) === 24 ? 0 : parseInt(parts.hour, 10),
+    parseInt(parts.minute, 10), 0
+  )
+  var offsetMs = naiveUtc - asTz
+  return new Date(naiveUtc + offsetMs).toISOString()
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -46,8 +87,10 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Parse new date+time into ISO timestamp for portal's starts_at column
-    var newStartsAt = new Date(new_date + ' ' + new_time).toISOString()
+    // Parse new date+time as the calendar's wall-clock time (America/Chicago)
+    // and convert to UTC. See api/bookings.js — Vercel runs in UTC by default
+    // so the legacy `new Date(...).toISOString()` lost 5 hours.
+    var newStartsAt = parseWallClockInTz(new_date + ' ' + new_time, 'America/Chicago')
 
     var updateResult = await supabaseAdmin
       .from('bookings')

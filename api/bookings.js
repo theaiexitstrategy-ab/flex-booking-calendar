@@ -5,6 +5,58 @@ var formatE164 = smsUtils.formatE164
 
 var FLEX_FACILITY_SLUG = process.env.NEXT_PUBLIC_FLEX_FACILITY_SLUG || 'flex-facility'
 
+// Parse a wall-clock string ("MAY 23, 2026 9:30 AM") as if it were in
+// the given IANA timezone, return ISO UTC. Used to store starts_at so
+// the slot the customer picked on the public calendar lines up with
+// the calendar's tz (America/Chicago) regardless of where the
+// serverless function runs (Vercel = UTC).
+//
+// Strategy: parse the date parts manually (year, month, day, hour,
+// minute, am/pm), build a Date in UTC, then ask Intl.DateTimeFormat
+// what UTC offset that wall-clock would carry in the target tz at
+// that moment — and subtract that offset to land on the correct UTC.
+function parseWallClockInTz(input, tz) {
+  var MONTHS = {
+    JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5,
+    JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11
+  }
+  var m = String(input || '').toUpperCase().match(
+    /([A-Z]{3,9})\s+(\d{1,2}),?\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*(AM|PM)?/
+  )
+  if (!m) return new Date(input).toISOString()  // fallback to legacy behavior
+  var month = MONTHS[m[1].slice(0, 3)]
+  var day   = parseInt(m[2], 10)
+  var year  = parseInt(m[3], 10)
+  var hour  = parseInt(m[4], 10)
+  var min   = parseInt(m[5], 10)
+  var mer   = m[6]
+  if (mer === 'PM' && hour < 12) hour += 12
+  if (mer === 'AM' && hour === 12) hour = 0
+  // Naive UTC interpretation of the wall-clock.
+  var naiveUtc = Date.UTC(year, month, day, hour, min, 0)
+  // What UTC offset (in minutes) does that wall-clock carry in the
+  // target tz? Format the naive timestamp in tz and read back the parts.
+  var fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  })
+  var parts = {}
+  fmt.formatToParts(new Date(naiveUtc)).forEach(function (p) {
+    if (p.type !== 'literal') parts[p.type] = p.value
+  })
+  var asTz = Date.UTC(
+    parseInt(parts.year, 10),
+    parseInt(parts.month, 10) - 1,
+    parseInt(parts.day, 10),
+    parseInt(parts.hour, 10) === 24 ? 0 : parseInt(parts.hour, 10),
+    parseInt(parts.minute, 10),
+    0
+  )
+  var offsetMs = naiveUtc - asTz
+  return new Date(naiveUtc + offsetMs).toISOString()
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -43,9 +95,15 @@ module.exports = async function handler(req, res) {
 
     // ── STEP 1: Insert into bookings table ──
     var bookingDate = date + ' ' + time
-    // Parse date+time into ISO timestamp for portal's starts_at column
-    // Date comes as "APR 5, 2026", time as "7:00 PM"
-    var startsAt = new Date(date + ' ' + time).toISOString()
+    // Parse date+time as the calendar's wall-clock time (The Flex
+    // Facility runs on America/Chicago) and convert to UTC for storage.
+    // Previously we used `new Date(date + ' ' + time).toISOString()`,
+    // which parsed the string in the server's local tz — Vercel
+    // functions run in UTC, so "9:30 AM" was stored as 09:30 UTC
+    // instead of 14:30 UTC (9:30 AM CDT). Result: every booking
+    // displayed 5 hours earlier than the slot the customer actually
+    // picked.
+    var startsAt = parseWallClockInTz(date + ' ' + time, 'America/Chicago')
 
     var bookingPayload = {
       lead_name: name,
