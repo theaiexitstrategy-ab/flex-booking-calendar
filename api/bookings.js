@@ -135,49 +135,67 @@ module.exports = async function handler(req, res) {
     var bookingId = bookingRow ? bookingRow.id : ''
 
     // ── STEP 2: Upsert into leads table ──
+    //
+    // CRITICAL: the existing-lead lookup MUST be scoped by client_id.
+    // Without that scope, supabaseAdmin (service-role, bypasses RLS)
+    // returns ANY lead matching the phone — including leads that
+    // belong to a DIFFERENT tenant or carry a NULL client_id. The
+    // 'update existing' branch then silently mutates that other
+    // tenant's row, and the booking's own tenant never gets a leads
+    // entry — which is the exact symptom Will and Kenny reported.
+    //
+    // Also: we now refuse to upsert at all when clientId is null,
+    // because writing leads with NULL client_id is what created the
+    // orphan rows that this fix has to dodge in the first place.
     var leadId = null
-    try {
-      // Check if phone already exists in leads
-      var existingLead = await supabaseAdmin
-        .from('leads')
-        .select('id')
-        .eq('phone', phoneE164)
-        .maybeSingle()
-
-      if (existingLead.data) {
-        // Update existing lead status
-        leadId = existingLead.data.id
-        await supabaseAdmin
+    if (!clientId) {
+      console.warn('[bookings] skipping lead upsert — no clientId resolved for slug', FLEX_FACILITY_SLUG)
+    } else {
+      try {
+        var existingLead = await supabaseAdmin
           .from('leads')
-          .update({
-            status: 'Ready to Book',
-            name: name,
-            email: email
-          })
-          .eq('id', leadId)
-      } else {
-        // Insert new lead
-        var leadPayload = {
-          name: name,
-          phone: phoneE164,
-          email: email,
-          source: 'book.theflexfacility.com',
-          funnel: 'booking',
-          status: 'Ready to Book',
-          tags: ['ready-to-book'],
-          created_at: new Date().toISOString()
-        }
-        if (clientId) leadPayload.client_id = clientId
-
-        var leadResult = await supabaseAdmin
-          .from('leads')
-          .insert(leadPayload)
           .select('id')
-          .single()
-        if (leadResult.data) leadId = leadResult.data.id
+          .eq('client_id', clientId)
+          .eq('phone', phoneE164)
+          .maybeSingle()
+
+        if (existingLead.data) {
+          // Update existing lead status (still within this tenant only)
+          leadId = existingLead.data.id
+          await supabaseAdmin
+            .from('leads')
+            .update({
+              status: 'Ready to Book',
+              name: name,
+              email: email
+            })
+            .eq('id', leadId)
+            .eq('client_id', clientId)
+        } else {
+          var leadPayload = {
+            client_id: clientId,
+            name: name,
+            phone: phoneE164,
+            email: email,
+            source: 'book.theflexfacility.com',
+            funnel: 'booking',
+            status: 'Ready to Book',
+            tags: ['ready-to-book'],
+            created_at: new Date().toISOString()
+          }
+          var leadResult = await supabaseAdmin
+            .from('leads')
+            .insert(leadPayload)
+            .select('id')
+            .single()
+          if (leadResult.error) {
+            console.error('[bookings] lead insert failed:', leadResult.error.message)
+          }
+          if (leadResult.data) leadId = leadResult.data.id
+        }
+      } catch (le) {
+        console.error('Lead upsert error:', le.message)
       }
-    } catch (le) {
-      console.error('Lead upsert error:', le.message)
     }
 
     // Update booking with lead_id if available
