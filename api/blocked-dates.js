@@ -23,7 +23,9 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
+  // Short cache (15s) so an operator marking a day off in the portal
+  // sees the booking widget update almost immediately on next render.
+  res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60')
   if (req.method === 'OPTIONS') return res.status(200).end()
 
   if (req.method !== 'GET') {
@@ -50,7 +52,15 @@ module.exports = async function handler(req, res) {
       .gte('blocked_date', today)
       .order('blocked_date', { ascending: true })
 
-    if (result.error) throw result.error
+    // Tolerate "table missing" before the portal migration has been
+    // run — the calendar should still render normally without blocks
+    // instead of 500-ing on every page load.
+    if (result.error) {
+      if (/booking_blocked_dates|does not exist|schema cache/i.test(result.error.message || '')) {
+        return res.status(200).json({ success: true, blocks: [], pending_migration: true })
+      }
+      throw result.error
+    }
 
     var blocks = (result.data || []).map(function (r) {
       return {
