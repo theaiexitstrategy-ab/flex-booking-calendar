@@ -2,204 +2,257 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Book Your Session — The FLEX Facility</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="description" content="Book a free athlete assessment or a group session with Coach Kenny Sims at The FLEX Facility in Earth City, MO.">
+<meta name="theme-color" content="#0A0A0B">
+<link rel="icon" href="/flex-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --black: #080808; --off-black: #111111; --card-bg: #141414;
-    --border: rgba(255,255,255,0.08); --border-light: rgba(255,255,255,0.15);
-    --white: #ffffff; --off-white: #f0f0f0; --muted: #999999;
-    --accent-gold: #d4a017; --accent-gold-light: #f0c040;
-    --accent-red: #E8200A; --accent-red-dark: #B51A08; --accent-red-light: #FF3D24;
-    --text: #F5F5F5;
-    --success: #22c55e; --radius: 12px; --radius-sm: 8px;
+    --ink: #0A0A0B; --ink-2: #111113; --ink-3: #18181B; --ink-4: #222226;
+    --line: rgba(255,255,255,0.08); --line-2: rgba(255,255,255,0.14);
+    --bone: #F4F3EF; --chalk: #EEECE6; --text: #F4F3EF;
+    --mute: #A3A3A8; --mute-2: #75757B;
+    --red: #E8200A; --red-hot: #FF3B1F; --red-rgb: 232,32,10;
+    --ok: #3DDC84;
+    --radius: 22px; --radius-sm: 14px;
+    --gutter: clamp(16px, 4vw, 40px);
+    --display: 'Archivo', 'Arial Narrow', sans-serif;
+    --mono: 'Geist Mono', ui-monospace, Menlo, monospace;
+    --ease: cubic-bezier(.2,.7,.1,1);
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--black); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; overflow-x: hidden; }
-  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { font-family: var(--display); background: var(--ink); color: var(--text); line-height: 1.55; overflow-x: hidden; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  body::after { content: ''; position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .05; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--red-hot); outline-offset: 3px; border-radius: 8px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+  .display { font-stretch: 62%; font-weight: 900; text-transform: uppercase; line-height: .88; letter-spacing: -.005em; }
+  .display em { font-style: normal; color: var(--red); }
+  .mono { font-family: var(--mono); }
+  .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .eyebrow .live { width: 7px; height: 7px; border-radius: 50%; background: var(--red-hot); animation: live 2s infinite; }
+  @keyframes live { 0% { box-shadow: 0 0 0 0 rgba(var(--red-rgb),.6); } 70% { box-shadow: 0 0 0 9px rgba(var(--red-rgb),0); } 100% { box-shadow: 0 0 0 0 rgba(var(--red-rgb),0); } }
 
   /* HEADER */
-  header { position: sticky; top: 0; z-index: 100; background: rgba(8,8,8,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
-  .logo-wrap { display: flex; align-items: center; gap: 14px; text-decoration: none; }
-  .logo-icon { width: 38px; height: 38px; background: var(--white); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .logo-icon svg { width: 22px; height: 22px; }
-  .logo-text { display: flex; flex-direction: column; line-height: 1; }
-  .logo-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--white); letter-spacing: 2px; }
-  .logo-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
-  .header-badge { display: flex; align-items: center; gap: 8px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--success); font-weight: 600; }
-  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); animation: pulse-dot 2s infinite; }
-  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  .top { position: sticky; top: 0; z-index: 50; background: rgba(10,10,11,.8); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); border-bottom: 1px solid var(--line); }
+  .top .wrap { height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+  .brand img { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; }
+  .brand b { display: block; font-stretch: 70%; font-weight: 900; font-size: 1.12rem; letter-spacing: .04em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
+  .brand small { display: block; font-family: var(--mono); font-size: .62rem; letter-spacing: .16em; color: var(--mute); text-transform: uppercase; margin-top: 3px; }
+  .call { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-2); text-decoration: none; font-family: var(--mono); font-size: .78rem; letter-spacing: .04em; white-space: nowrap; transition: background .2s; }
+  .call:hover { background: rgba(255,255,255,.06); }
+  .call svg { width: 15px; height: 15px; color: var(--red-hot); }
 
   /* HERO */
-  .hero { padding: 60px 32px 40px; max-width: 1100px; margin: 0 auto; }
-  .hero-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 4px; color: var(--accent-gold); text-transform: uppercase; margin-bottom: 12px; }
-  .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 7vw, 88px); line-height: 0.9; color: var(--white); letter-spacing: 2px; }
-  .hero-title span { color: var(--accent-gold); }
-  .hero-desc { margin-top: 18px; font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.6; font-weight: 300; }
-  .hero-stats { display: flex; gap: 32px; margin-top: 32px; flex-wrap: wrap; }
-  .stat { display: flex; flex-direction: column; gap: 4px; }
-  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--white); letter-spacing: 1px; }
-  .stat-label { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .hero { padding: clamp(28px, 5vw, 56px) 0 clamp(20px, 3vw, 32px); }
+  .hero h1 { font-size: clamp(3rem, 8vw, 6rem); margin-top: 14px; }
+  .hero p { margin-top: 14px; color: var(--mute); max-width: 52ch; font-size: 1.05rem; }
+  .steps { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
+  .steps span { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px 0 6px; border-radius: 999px; background: var(--ink-2); border: 1px solid var(--line); font-family: var(--mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); transition: all .3s; }
+  .steps span i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--ink-4); color: var(--text); font-size: .68rem; }
+  .steps span.on { color: var(--text); border-color: rgba(var(--red-rgb),.5); }
+  .steps span.on i { background: var(--red); }
+  .steps span.done i { background: var(--ok); color: #04210f; }
 
-  /* SESSION CARDS */
-  .session-types { max-width: 1100px; margin: 0 auto 36px; padding: 0 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  .session-card { background: var(--card-bg); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 22px 20px; cursor: pointer; transition: all 0.25s ease; position: relative; overflow: hidden; }
-  .session-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(212,160,23,0.06) 0%, transparent 60%); opacity: 0; transition: opacity 0.3s; }
-  .session-card:hover::before, .session-card.active::before { opacity: 1; }
-  .session-card:hover { border-color: var(--border-light); transform: translateY(-2px); }
-  .session-card.active { border-color: var(--accent-gold); background: rgba(212,160,23,0.06); }
-  .session-card.active .session-name { color: var(--accent-gold); }
-  .session-tag { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
-  .session-tag.athlete { background: rgba(232,32,10,0.15); color: var(--accent-red); }
-  .session-tag.lifestyle { background: rgba(99,102,241,0.15); color: #818cf8; }
-  .session-tag.body { background: rgba(212,160,23,0.15); color: var(--accent-gold); }
-  .session-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1.5px; color: var(--white); margin-bottom: 6px; transition: color 0.2s; }
-  .session-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
-  .session-duration { margin-top: 14px; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 500; }
-  .capacity-badge { margin-top: 10px; display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--muted); }
-  .capacity-badge.warn { border-color: rgba(212,160,23,0.4); color: var(--accent-gold); }
-  .capacity-badge.full-badge { border-color: rgba(232,32,10,0.4); color: var(--accent-red); }
-  .check-mark { position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 12px; }
-  .session-card.active .check-mark { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--black); }
+  /* LAYOUT */
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; padding-bottom: 80px; }
+  .grid > * { min-width: 0; }
+  .card { background: var(--ink-2); border: 1px solid var(--line); border-radius: var(--radius); }
+  .booker { overflow: hidden; }
+  .sec { padding: clamp(20px, 3vw, 30px); border-top: 1px solid var(--line); }
+  .sec:first-child { border-top: 0; }
+  .sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .sec-h h2 { display: flex; align-items: center; gap: 12px; font-stretch: 70%; font-weight: 900; text-transform: uppercase; font-size: 1.45rem; letter-spacing: .01em; line-height: 1; }
+  .sec-h h2 i { font-style: normal; font-family: var(--mono); font-size: .7rem; font-weight: 500; color: var(--red-hot); letter-spacing: .1em; }
+  .sec-h .meta { font-family: var(--mono); font-size: .7rem; color: var(--mute); letter-spacing: .06em; text-align: right; }
 
-  /* INTEGRATIONS */
-  .integrations-bar { max-width: 1100px; margin: 0 auto 32px; padding: 0 32px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .int-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-  .int-badge { display: flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; color: var(--muted); font-weight: 500; }
-  .int-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+  /* SESSION TILES */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .tile { position: relative; text-align: left; cursor: pointer; padding: 16px 16px 16px; border-radius: var(--radius-sm); background: var(--ink-3); border: 1.5px solid var(--line); transition: border-color .2s, background .2s, transform .2s; }
+  .tile:hover { border-color: var(--line-2); transform: translateY(-1px); }
+  .tile.on { border-color: var(--red); background: linear-gradient(160deg, rgba(var(--red-rgb),.16), rgba(var(--red-rgb),.02) 60%), var(--ink-3); }
+  .tile .tag { font-family: var(--mono); font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+  .tile.on .tag { color: var(--red-hot); }
+  .tile b { display: block; margin-top: 6px; font-stretch: 72%; font-weight: 900; text-transform: uppercase; font-size: 1.18rem; line-height: 1.02; padding-right: 26px; }
+  .tile p { margin-top: 8px; font-size: .86rem; color: var(--mute); line-height: 1.45; }
+  .tile .chk { position: absolute; top: 14px; right: 14px; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line-2); display: grid; place-items: center; transition: all .2s; }
+  .tile .chk svg { width: 12px; height: 12px; opacity: 0; }
+  .tile.on .chk { background: var(--red); border-color: var(--red); }
+  .tile.on .chk svg { opacity: 1; }
 
-  /* CALENDAR LAYOUT */
-  .calendar-container { max-width: 1100px; margin: 0 auto; padding: 0 32px 60px; display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
-  .calendar-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .panel-header { padding: 22px 26px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .panel-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--white); }
-  .panel-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .cal-nav { display: flex; align-items: center; gap: 16px; }
-  .cal-nav-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-  .cal-nav-btn:hover { background: var(--border); color: var(--white); }
-  .cal-month { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600; color: var(--white); letter-spacing: 2px; text-transform: uppercase; min-width: 160px; text-align: center; }
-  .cal-grid { padding: 20px 26px 24px; }
-  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
-  .cal-weekday { text-align: center; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; padding: 6px 0; }
-  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.18s; position: relative; color: var(--text); border: 1px solid transparent; }
-  .cal-day:hover:not(.empty):not(.past):not(.no-slots) { background: rgba(255,255,255,0.08); border-color: var(--border); }
-  .cal-day.past { color: rgba(255,255,255,0.15); cursor: default; }
-  .cal-day.empty { cursor: default; }
-  .cal-day.no-slots { color: rgba(255,255,255,0.2); cursor: default; }
-  .cal-day.has-slots::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--accent-gold); }
-  .cal-day.selected { background: var(--white) !important; color: var(--black) !important; font-weight: 700; border-color: var(--white) !important; }
-  .cal-day.today { border-color: var(--accent-gold); color: var(--accent-gold); font-weight: 700; }
+  /* DATES */
+  .dates { position: relative; display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity; padding: 2px 2px 10px; margin: 0 -2px; scrollbar-width: thin; scrollbar-color: var(--ink-4) transparent; }
+  .date { flex: 0 0 auto; width: 74px; scroll-snap-align: start; cursor: pointer; text-align: center; padding: 10px 0 9px; border-radius: var(--radius-sm); background: var(--ink-3); border: 1.5px solid var(--line); transition: all .18s; }
+  .date:hover:not(:disabled) { border-color: var(--line-2); }
+  .date .dw { font-family: var(--mono); font-size: .64rem; letter-spacing: .12em; color: var(--mute); text-transform: uppercase; }
+  .date .dn { font-stretch: 68%; font-weight: 900; font-size: 1.9rem; line-height: 1; margin: 4px 0 2px; }
+  .date .dm { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; color: var(--mute); text-transform: uppercase; }
+  .date .ds { display: block; margin-top: 6px; font-family: var(--mono); font-size: .58rem; letter-spacing: .06em; color: var(--ok); }
+  .date.on { background: var(--bone); color: var(--ink); border-color: var(--bone); }
+  .date.on .dw, .date.on .dm { color: #55555b; }
+  .date.on .ds { color: var(--red); }
+  .date:disabled { opacity: .38; cursor: not-allowed; }
+  .date:disabled .ds { color: var(--mute); }
+  .more-dates { flex: 0 0 auto; width: 74px; border-radius: var(--radius-sm); border: 1.5px dashed var(--line-2); background: transparent; cursor: pointer; font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+  .more-dates:hover { color: var(--text); border-color: var(--mute); }
 
-  /* SCHEDULE INFO */
-  .info-panel { padding: 20px 26px 26px; border-top: 1px solid var(--border); }
-  .schedule-info { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
-  .schedule-info-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
-  .schedule-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-  .schedule-row:last-child { border-bottom: none; }
-  .schedule-row .sday { color: var(--text); font-weight: 500; }
-  .schedule-row .stime { color: var(--accent-gold); font-weight: 600; font-size: 12px; }
-  .schedule-row .stime.none { color: rgba(255,255,255,0.2); font-weight: 400; }
-  .schedule-note { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.5; font-style: italic; }
+  .times-h { margin: 18px 0 10px; font-family: var(--mono); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+  .times { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+  .time { cursor: pointer; padding: 13px 10px; border-radius: 12px; background: var(--ink-3); border: 1.5px solid var(--line); text-align: center; transition: all .18s; }
+  .time b { display: block; font-stretch: 80%; font-weight: 800; font-size: 1.08rem; letter-spacing: .01em; }
+  .time small { display: block; margin-top: 2px; font-family: var(--mono); font-size: .62rem; letter-spacing: .06em; color: var(--mute); }
+  .time small.low { color: var(--red-hot); }
+  .time:hover:not(:disabled) { border-color: var(--line-2); transform: translateY(-1px); }
+  .time.on { background: var(--red); border-color: var(--red); color: #fff; }
+  .time.on small { color: rgba(255,255,255,.85); }
+  .time:disabled { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+  .empty { padding: 22px; border-radius: var(--radius-sm); border: 1px dashed var(--line-2); color: var(--mute); font-size: .92rem; text-align: center; }
+  .note { margin-top: 12px; font-family: var(--mono); font-size: .66rem; letter-spacing: .04em; color: var(--mute-2); }
+  .skel { height: 92px; border-radius: var(--radius-sm); background: linear-gradient(90deg, var(--ink-3), var(--ink-4), var(--ink-3)); background-size: 200% 100%; animation: sk 1.2s infinite; }
+  @keyframes sk { to { background-position: -200% 0; } }
 
-  /* TIME SLOTS */
-  .slots-section { padding: 20px 26px 26px; border-top: 1px solid var(--border); }
-  .slots-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .slots-title { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
-  .slots-cap { font-size: 12px; color: var(--muted); }
-  .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .time-slot { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 8px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 600; color: var(--text); position: relative; }
-  .time-slot:hover { background: rgba(255,255,255,0.09); border-color: var(--border-light); transform: translateY(-1px); }
-  .time-slot.selected { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--black); font-weight: 700; }
-  .time-slot.slot-full { opacity: 0.35; cursor: not-allowed; }
-  .time-slot.slot-full::after { content: 'FULL'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; letter-spacing: 2px; color: var(--accent-red); font-weight: 700; background: rgba(8,8,8,0.75); border-radius: var(--radius-sm); }
-  .time-period { font-size: 10px; opacity: 0.7; display: block; margin-top: 2px; letter-spacing: 1px; }
-  .slot-spots { font-size: 10px; display: block; margin-top: 3px; }
+  /* FORM */
+  .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .fgrid > * { min-width: 0; }
+  .f-full { grid-column: 1 / -1; }
+  .fld label { display: block; margin-bottom: 6px; font-family: var(--mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+  .fld label em { font-style: normal; color: var(--red-hot); }
+  .inp { width: 100%; height: 52px; padding: 0 16px; border-radius: 12px; background: var(--ink-3); border: 1.5px solid var(--line); outline: none; font-size: 1rem; transition: border-color .2s, background .2s; }
+  .inp::placeholder { color: var(--mute-2); }
+  .inp:focus { border-color: var(--red); background: #1c1c20; }
+  .inp.bad { border-color: var(--red-hot); }
+  select.inp { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A3A3A8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
+  select.inp option { background: var(--ink-3); }
+  .hide { display: none !important; }
+  .err { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: rgba(var(--red-rgb),.12); border: 1px solid rgba(var(--red-rgb),.4); color: #ffb3a8; font-size: .92rem; }
+  .confirm { margin-top: 18px; width: 100%; min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 24px; border: 0; border-radius: 999px; cursor: pointer; background: var(--red); color: #fff; text-align: left; box-shadow: 0 14px 34px -12px rgba(var(--red-rgb),.75), inset 0 1px 0 rgba(255,255,255,.18); transition: transform .25s var(--ease), background .2s; }
+  .confirm:hover:not(:disabled) { background: var(--red-hot); transform: translateY(-2px); }
+  .confirm .ct { min-width: 0; }
+  .confirm .ct b { display: block; font-stretch: 80%; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; font-size: 1.02rem; line-height: 1.1; }
+  .confirm .ct small { display: block; font-family: var(--mono); font-size: .68rem; letter-spacing: .04em; opacity: .85; margin-top: 3px; }
+  .confirm .arr { flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; background: #fff; color: var(--red); display: grid; place-items: center; }
+  .confirm .arr svg { width: 18px; height: 18px; }
+  .confirm:disabled { background: var(--ink-4); color: var(--mute); box-shadow: none; cursor: not-allowed; }
+  .confirm:disabled .arr { background: var(--ink-3); color: var(--mute-2); }
+  .fine { margin-top: 12px; font-size: .74rem; color: var(--mute-2); line-height: 1.5; text-align: center; }
 
-  /* FORM PANEL */
-  .form-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: sticky; top: 88px; }
-  .booking-summary { padding: 22px 24px; background: rgba(212,160,23,0.06); border-bottom: 1px solid rgba(212,160,23,0.2); }
-  .summary-label { font-size: 11px; letter-spacing: 3px; color: var(--accent-gold); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
-  .summary-session { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1.5px; color: var(--white); }
-  .summary-datetime { font-size: 13px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 8px; }
-  .summary-datetime.set { color: var(--text); }
-  .form-body { padding: 24px; }
-  .form-group { margin-bottom: 18px; }
-  .form-label { display: block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
-  .form-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; transition: all 0.2s; outline: none; }
-  .form-input:focus { border-color: var(--accent-gold); background: rgba(212,160,23,0.04); }
-  .form-input::placeholder { color: rgba(255,255,255,0.25); }
-  select.form-input option { background: #141414; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .divider { height: 1px; background: var(--border); margin: 20px 0; }
-  .btn-book { width: 100%; padding: 16px; background: var(--white); color: var(--black); border: none; border-radius: var(--radius-sm); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2.5px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
-  .btn-book::before { content: ''; position: absolute; inset: 0; background: var(--accent-gold); transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; }
-  .btn-book:hover::before { transform: scaleX(1); }
-  .btn-book span { position: relative; z-index: 1; }
-  .btn-book:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-book:disabled::before { display: none; }
-  .sync-options { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-  .sync-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Barlow', sans-serif; }
-  .sync-btn:hover { border-color: var(--border-light); color: var(--text); background: rgba(255,255,255,0.04); }
+  /* ASIDE */
+  .aside { position: sticky; top: 86px; display: grid; gap: 14px; }
+  .coach { overflow: hidden; }
+  .coach-img { position: relative; background: var(--chalk); aspect-ratio: 1.15; overflow: hidden; }
+  .coach-img img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; mix-blend-mode: multiply; }
+  .coach-img .badge { position: absolute; left: 14px; bottom: 14px; background: var(--ink); color: var(--bone); border-radius: 999px; padding: 7px 12px; font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; }
+  .coach-body { padding: 20px; }
+  .coach-body h3 { font-stretch: 70%; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; line-height: 1; }
+  .coach-body > p { margin-top: 6px; color: var(--mute); font-size: .9rem; }
+  .expect { list-style: none; margin-top: 16px; display: grid; gap: 10px; }
+  .expect li { display: flex; gap: 10px; align-items: flex-start; font-size: .92rem; }
+  .expect li svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--red-hot); margin-top: 2px; }
+  .where { padding: 16px 20px; display: flex; gap: 12px; align-items: center; text-decoration: none; }
+  .where svg { width: 20px; height: 20px; color: var(--red-hot); flex-shrink: 0; }
+  .where b { display: block; font-size: .92rem; }
+  .where small { display: block; color: var(--mute); font-size: .8rem; }
+  .where:hover { border-color: var(--line-2); }
 
-  /* AI */
-  .ai-bubble { position: fixed; bottom: 28px; right: 28px; z-index: 1000; }
-  .ai-trigger { width: 62px; height: 62px; border-radius: 50%; background: var(--white); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.6); transition: all 0.3s; animation: ai-pulse 3s infinite; position: relative; }
-  @keyframes ai-pulse { 0%,100%{box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 0 rgba(255,255,255,0.3)} 50%{box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 12px rgba(255,255,255,0)} }
-  .ai-trigger:hover { transform: scale(1.08); }
-  .ai-notif { position: absolute; top: -3px; right: -3px; width: 18px; height: 18px; background: var(--accent-red); border-radius: 50%; border: 2px solid var(--black); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: white; }
-  .ai-drawer { position: fixed; bottom: 104px; right: 28px; width: 340px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 24px 64px rgba(0,0,0,0.7); display: flex; flex-direction: column; overflow: hidden; transform: translateY(20px) scale(0.96); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); max-height: 480px; z-index: 999; }
-  .ai-drawer.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
-  .drawer-header { padding: 16px 18px; background: var(--off-black); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-  .drawer-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .drawer-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1.5px; color: var(--white); }
-  .drawer-status { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 5px; }
-  .drawer-close { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; }
-  .drawer-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-  .message { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; animation: msg-in 0.3s ease; }
-  @keyframes msg-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-  .message.assistant { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
-  .message.user { background: var(--white); color: var(--black); align-self: flex-end; font-weight: 500; border-bottom-right-radius: 4px; }
-  .quick-replies { display: flex; flex-wrap: wrap; gap: 6px; }
-  .quick-reply { background: transparent; border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--text); cursor: pointer; transition: all 0.2s; font-family: 'Barlow', sans-serif; }
-  .quick-reply:hover { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--black); }
-  .drawer-input-row { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
-  .drawer-input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 20px; padding: 9px 16px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; outline: none; }
-  .drawer-send { width: 36px; height: 36px; border-radius: 50%; background: var(--white); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
-  .drawer-send:hover { background: var(--accent-gold); }
-  .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 12px 16px; }
-  .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: typing 1.2s infinite; }
-  .typing-dot:nth-child(2){animation-delay:.2s} .typing-dot:nth-child(3){animation-delay:.4s}
-  @keyframes typing { 0%,60%,100%{transform:translateY(0);opacity:.4} 30%{transform:translateY(-5px);opacity:1} }
+  /* MOBILE BAR */
+  .mbar { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; display: none; align-items: center; gap: 10px; padding: 8px 8px 8px 18px; border-radius: 999px; background: rgba(17,17,19,.92); border: 1px solid var(--line-2); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 18px 40px -14px rgba(0,0,0,.9); transform: translateY(140%); transition: transform .35s var(--ease); }
+  .mbar.show { transform: none; }
+  .mbar .mt { flex: 1; min-width: 0; }
+  .mbar .mt small { display: block; font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; color: var(--mute); text-transform: uppercase; }
+  .mbar .mt b { display: block; font-stretch: 80%; font-weight: 800; font-size: .98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mbar button { height: 46px; padding: 0 20px; border-radius: 999px; border: 0; background: var(--red); color: #fff; font-stretch: 85%; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; font-size: .9rem; cursor: pointer; }
+
+  /* AGENT */
+  .ken { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 70; transition: bottom .35s var(--ease); }
+  body.mbar-on .ken { bottom: calc(86px + env(safe-area-inset-bottom)); }
+  .ken-btn { position: relative; display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 20px 0 6px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--ink-3); cursor: pointer; box-shadow: 0 16px 36px -12px rgba(0,0,0,.85); transition: transform .2s; }
+  .ken-btn:hover { transform: translateY(-2px); }
+  .ken-btn img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: var(--bone); }
+  .ken-btn span { font-stretch: 80%; font-weight: 800; font-size: .92rem; text-transform: uppercase; letter-spacing: .04em; }
+  .ken-btn .dot { position: absolute; top: 2px; left: 42px; width: 14px; height: 14px; border-radius: 50%; background: var(--red); border: 2px solid var(--ink); }
+  .drawer { position: fixed; right: 20px; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 80; width: 380px; max-width: calc(100vw - 24px); height: min(600px, calc(100vh - 120px)); display: flex; flex-direction: column; background: var(--ink-2); border: 1px solid var(--line-2); border-radius: 22px; box-shadow: 0 30px 80px -20px rgba(0,0,0,.9); overflow: hidden; opacity: 0; transform: translateY(16px) scale(.98); pointer-events: none; transition: opacity .25s, transform .3s var(--ease); }
+  .drawer.open { opacity: 1; transform: none; pointer-events: auto; }
+  .dr-h { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; border-bottom: 1px solid var(--line); background: var(--ink-3); }
+  .dr-h img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--bone); }
+  .dr-h b { display: block; font-stretch: 75%; font-weight: 900; text-transform: uppercase; font-size: 1.02rem; line-height: 1.05; }
+  .dr-h small { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: .62rem; letter-spacing: .08em; color: var(--ok); text-transform: uppercase; }
+  .dr-h small::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .dr-x { margin-left: auto; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: transparent; cursor: pointer; font-size: 20px; line-height: 1; color: var(--mute); }
+  .dr-x:hover { color: var(--text); }
+  .msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; scrollbar-color: var(--ink-4) transparent; }
+  .msg { max-width: 86%; padding: 10px 14px; border-radius: 16px; font-size: .93rem; line-height: 1.5; animation: mi .25s var(--ease); overflow-wrap: anywhere; }
+  @keyframes mi { from { opacity: 0; transform: translateY(6px); } }
+  .msg.bot { align-self: flex-start; background: var(--ink-3); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+  .msg.me { align-self: flex-end; background: var(--bone); color: var(--ink); font-weight: 500; border-bottom-right-radius: 6px; }
+  .msg a { color: var(--red-hot); }
+  .msg.sum { width: 86%; }
+  .msg.sum dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin-top: 8px; font-size: .86rem; }
+  .msg.sum dt { font-family: var(--mono); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); padding-top: 3px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; max-width: 100%; }
+  .chip { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; cursor: pointer; font-size: .86rem; transition: all .15s; text-align: left; }
+  .chip:hover { border-color: var(--red); background: rgba(var(--red-rgb),.1); }
+  .chip.primary { background: var(--red); border-color: var(--red); color: #fff; font-weight: 700; }
+  .chip.primary:hover { background: var(--red-hot); }
+  .typing { display: flex; gap: 4px; padding: 14px 16px; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--mute); animation: ty 1.2s infinite; }
+  .typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
+  @keyframes ty { 0%,60%,100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-4px); opacity: 1; } }
+  .dr-in { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+  .dr-in input { flex: 1; min-width: 0; height: 46px; padding: 0 16px; border-radius: 999px; background: var(--ink-3); border: 1px solid var(--line); outline: none; font-size: 16px; }
+  .dr-in input:focus { border-color: var(--red); }
+  .dr-in button { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--red); color: #fff; cursor: pointer; display: grid; place-items: center; flex-shrink: 0; }
+  .dr-in button svg { width: 18px; height: 18px; }
 
   /* SUCCESS */
-  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(8,8,8,0.92); z-index: 500; align-items: center; justify-content: center; backdrop-filter: blur(12px); }
-  .success-overlay.show { display: flex; }
-  .success-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 48px 56px; text-align: center; max-width: 480px; animation: success-in 0.5s cubic-bezier(0.34,1.56,0.64,1); }
-  @keyframes success-in { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
-  .success-icon { width: 72px; height: 72px; border-radius: 50%; background: rgba(34,197,94,0.12); border: 2px solid rgba(34,197,94,0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
-  .success-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 2px; color: var(--white); margin-bottom: 10px; }
-  .success-sub { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; }
-  .success-actions { display: flex; gap: 12px; flex-direction: column; }
-  .btn-primary { padding: 14px; background: var(--white); color: var(--black); border: none; border-radius: var(--radius-sm); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
-  .btn-primary:hover { background: var(--accent-gold); }
-  .btn-secondary { padding: 14px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
-  .btn-secondary:hover { color: var(--text); }
+  .done-ov { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10,10,11,.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .done-ov.show { display: flex; }
+  .done-card { width: 100%; max-width: 460px; text-align: center; padding: 40px 32px 28px; border-radius: 26px; background: var(--ink-2); border: 1px solid var(--line-2); animation: pop .5s var(--ease); }
+  @keyframes pop { from { opacity: 0; transform: scale(.92); } }
+  .done-ic { width: 72px; height: 72px; margin: 0 auto 18px; border-radius: 50%; display: grid; place-items: center; background: var(--red); box-shadow: 0 0 0 10px rgba(var(--red-rgb),.15); }
+  .done-ic svg { width: 32px; height: 32px; color: #fff; }
+  .done-card h2 { font-size: 3rem; }
+  .done-card .when { margin-top: 14px; font-stretch: 80%; font-weight: 800; font-size: 1.15rem; color: var(--red-hot); }
+  .done-card p { margin-top: 10px; color: var(--mute); font-size: .95rem; }
+  .done-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 22px; }
+  .done-acts button { height: 48px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; cursor: pointer; font-size: .88rem; font-weight: 600; }
+  .done-acts button:hover { background: rgba(255,255,255,.06); }
+  .done-acts .full { grid-column: 1 / -1; background: var(--bone); color: var(--ink); border-color: var(--bone); }
+  .powered { margin-top: 20px; font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; color: var(--mute-2); }
 
-  @media(max-width:900px){
-    .session-types{grid-template-columns:1fr}
-    .calendar-container{grid-template-columns:1fr;padding:0 20px 60px}
-    .form-panel{position:static}
-    .hero,.session-types,.integrations-bar{padding-left:20px;padding-right:20px}
-    header{padding:0 20px}
+  @media (max-width: 960px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .aside { position: static; grid-template-columns: 1fr 1fr; }
+    .coach { grid-row: span 2; }
+    .mbar { display: flex; }
   }
-  @media(max-width:600px){
-    .slots-grid{grid-template-columns:repeat(3,1fr)}
-    .form-row{grid-template-columns:1fr}
-    .header-badge{display:none}
-    .ai-drawer{width:calc(100vw - 40px);right:20px}
-    .success-card{padding:36px 28px}
+  @media (max-width: 640px) {
+    .call span { display: none; }
+    .call { width: 40px; padding: 0; justify-content: center; }
+    .hero h1 { font-size: 3.4rem; }
+    .hero p { font-size: .98rem; }
+    .tiles { grid-template-columns: 1fr; gap: 8px; }
+    .tile { padding: 14px 16px; }
+    .tile p { display: none; }
+    .tile.on p { display: block; }
+    .fgrid { grid-template-columns: 1fr; }
+    .aside { grid-template-columns: 1fr; }
+    .coach-img { aspect-ratio: 1.3; }
+    .ken-btn span { display: none; }
+    .ken-btn { padding: 0 6px; height: 60px; }
+    .ken { right: 14px; }
+    .drawer { right: 12px; left: 12px; width: auto; max-width: none; bottom: calc(12px + env(safe-area-inset-bottom)); height: min(620px, calc(100dvh - 24px)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    html { scroll-behavior: auto; }
   }
 </style>
 <!-- Supabase Realtime for live slot updates -->
@@ -215,259 +268,179 @@
 </head>
 <body>
 
-<header>
-  <a href="#" class="logo-wrap">
-    <div class="logo-icon">
-      <img src="JPG.jpeg" alt="FLEX Facility Logo" style="width:38px;height:38px;object-fit:contain;border-radius:8px;">
-    </div>
-    <div class="logo-text">
-      <span class="logo-name">THE FLEX FACILITY</span>
-      <span class="logo-sub">Book A Session</span>
-    </div>
-  </a>
-  <div class="header-badge"><div class="live-dot"></div>Booking Available</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="https://theflexfacility.com">
+      <img src="/flex-logo.png" alt="The Flex Facility logo" width="40" height="40">
+      <div><b>The Flex Facility</b><small>Book a session</small></div>
+    </a>
+    <a class="call" href="tel:8775153539" aria-label="Call 1-877-515-FLEX"><svg><use href="#i-phone"/></svg><span>1-877-515-FLEX</span></a>
+  </div>
 </header>
 
-<div class="hero">
-  <div class="hero-eyebrow">Earth City, MO · Coach Kenny Sims</div>
-  <h1 class="hero-title">TRAIN WITH<br>THE <span>BEST.</span></h1>
-  <p class="hero-desc">Free Athlete Assessment, group Physique & Lifestyle training, or competitive Bodybuilding coaching. Real results. Zero fluff.</p>
-  <div class="hero-stats">
-    <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Free Assessment</span></div>
-    <div class="stat"><span class="stat-num">10</span><span class="stat-label">Max Per Athlete Session</span></div>
-    <div class="stat"><span class="stat-num">7</span><span class="stat-label">Days Available</span></div>
+<main class="wrap">
+  <section class="hero">
+    <span class="eyebrow"><span class="live"></span>Earth City, MO · Coach Kenny Sims</span>
+    <h1 class="display">Book your <em>session.</em></h1>
+    <p>Pick a session, tap a time, add your info. About a minute, start to finish. The athlete assessment is free.</p>
+    <div class="steps" aria-hidden="true">
+      <span id="st1" class="done"><i>1</i>Session</span>
+      <span id="st2" class="on"><i>2</i>Time</span>
+      <span id="st3"><i>3</i>Your info</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <div class="card booker">
+      <section class="sec" id="sec-session">
+        <div class="sec-h"><h2><i>01</i>Choose a session</h2></div>
+        <div class="tiles" id="tiles" role="radiogroup" aria-label="Session type"></div>
+      </section>
+
+      <section class="sec" id="sec-time">
+        <div class="sec-h"><h2><i>02</i>Pick a time</h2><span class="meta" id="time-meta"></span></div>
+        <div class="dates" id="dates" aria-label="Available dates"><div class="skel" style="flex:1"></div></div>
+        <div class="times-h" id="times-h"></div>
+        <div class="times" id="times" aria-live="polite"></div>
+        <p class="note">Same-day booking isn't available. The earliest session is tomorrow.</p>
+      </section>
+
+      <section class="sec" id="sec-info">
+        <div class="sec-h"><h2><i>03</i>Your info</h2><span class="meta">Takes 30 seconds</span></div>
+        <form id="bookForm" novalidate onsubmit="event.preventDefault(); submitBooking();">
+          <div class="fgrid">
+            <div class="fld f-full"><label for="f-name" id="lbl-name">Athlete's full name <em>*</em></label><input class="inp" id="f-name" autocomplete="name" placeholder="First & last name"></div>
+            <div class="fld"><label for="f-phone">Mobile phone <em>*</em></label><input class="inp" id="f-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(314) 000-0000"></div>
+            <div class="fld"><label for="f-email">Email <em>*</em></label><input class="inp" id="f-email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com"></div>
+            <div class="fld ath"><label for="f-age">Athlete age</label><input class="inp" id="f-age" type="number" inputmode="numeric" min="6" max="80" placeholder="Age"></div>
+            <div class="fld ath"><label for="f-sport">Sport</label><input class="inp" id="f-sport" placeholder="e.g. Football"></div>
+            <div class="fld f-full hide" id="guardian-wrap"><label for="f-guardian">Parent / guardian name</label><input class="inp" id="f-guardian" autocomplete="off" placeholder="Required for athletes under 18"></div>
+            <div class="fld f-full"><label for="f-goal">Primary goal</label>
+              <select class="inp" id="f-goal">
+                <option value="">Choose a goal (optional)</option>
+                <option>Increase speed & agility</option>
+                <option>Build strength & power</option>
+                <option>Improve sports performance</option>
+                <option>Prepare for tryouts / combine</option>
+                <option>College athletic prep</option>
+                <option>Weight loss & body composition</option>
+                <option>Bodybuilding / competition prep</option>
+                <option>General fitness & lifestyle</option>
+                <option>Injury prevention / recovery</option>
+              </select>
+            </div>
+          </div>
+          <div class="err hide" id="form-err" role="alert"></div>
+          <button type="submit" class="confirm" id="btn-book" disabled>
+            <span class="ct"><b id="btn-text">Pick a time above</b><small id="btn-sub">Then confirm here</small></span>
+            <span class="arr"><svg><use href="#i-arrow"/></svg></span>
+          </button>
+          <p class="fine">You'll get a text confirmation and a reminder before your session. Msg &amp; data rates may apply. Reply STOP to opt out.</p>
+        </form>
+      </section>
+    </div>
+
+    <aside class="aside">
+      <div class="card coach">
+        <div class="coach-img"><img src="/kenny-flex.webp" alt="Coach Kenny Sims" width="1000" height="1294"><span class="badge">Pro Elite · Est. 2013</span></div>
+        <div class="coach-body">
+          <h3 id="exp-title">What to expect</h3>
+          <p>With Coach Kenny Sims</p>
+          <ul class="expect" id="expect"></ul>
+        </div>
+      </div>
+      <a class="card where" href="https://maps.google.com/?q=4132+Shore+Line+Dr+Earth+City+MO+63045" target="_blank" rel="noopener">
+        <svg><use href="#i-pin"/></svg><div><b>4132 Shore Line Dr</b><small>Earth City, MO 63045 · Directions</small></div>
+      </a>
+      <a class="card where" href="tel:8775153539">
+        <svg><use href="#i-phone"/></svg><div><b>1-877-515-FLEX</b><small>Questions? Call or text</small></div>
+      </a>
+    </aside>
   </div>
+</main>
+
+<!-- MOBILE BAR -->
+<div class="mbar" id="mbar" aria-hidden="true">
+  <div class="mt"><small id="mbar-k">Your session</small><b id="mbar-v">Pick a time</b></div>
+  <button type="button" onclick="goToInfo()">Continue</button>
 </div>
 
-<!-- SESSION TYPE SELECTOR -->
-<div class="session-types">
-  <div class="session-card active" onclick="selectSession(this,'athlete')" id="card-athlete">
-    <div class="check-mark">✓</div>
-    <div class="session-tag athlete">Free · 1-on-1</div>
-    <div class="session-name">ATHLETE ASSESSMENT</div>
-    <div class="session-desc">Free 1-on-1 with Coach Kenny. Movement screening, strength eval, sport-specific goals, and your personalized training roadmap.</div>
-    <div class="session-duration">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      60 min · Sun 8:30 AM · Mon–Wed 7 PM
-    </div>
-    <div class="capacity-badge" id="cap-athlete">Max 10 spots per session</div>
-  </div>
-  <div class="session-card" onclick="selectSession(this,'lifestyle')" id="card-lifestyle">
-    <div class="check-mark"></div>
-    <div class="session-tag lifestyle">Group · Physique</div>
-    <div class="session-name">PHYSIQUE & LIFESTYLE</div>
-    <div class="session-desc">Body composition, nutrition strategy, and lifestyle performance training for adults ready to look and feel their best. Sustainable. Science-backed.</div>
-    <div class="session-duration">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Group · 7 days/week availability
-    </div>
-    <div class="capacity-badge" id="cap-lifestyle">Open group enrollment</div>
-  </div>
-  <div class="session-card" onclick="selectSession(this,'bodybuilding')" id="card-bodybuilding">
-    <div class="check-mark"></div>
-    <div class="session-tag body">Group · Competitive</div>
-    <div class="session-name">BODYBUILDING</div>
-    <div class="session-desc">Stage-ready physique development. Posing, periodization, peak week protocols, and muscle-by-muscle coaching for competitors and serious builders.</div>
-    <div class="session-duration">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Group · 7 days/week availability
-    </div>
-    <div class="capacity-badge" id="cap-bodybuilding">Open group enrollment</div>
-  </div>
-</div>
-
-<!-- INTEGRATIONS -->
-<div class="integrations-bar">
-  <span class="int-label">Syncs with</span>
-  <div class="int-badge"><div class="dot"></div>Google Calendar</div>
-  <div class="int-badge"><div class="dot"></div>Apple Calendar</div>
-  <div class="int-badge"><div class="dot"></div>FLEX App</div>
-  <div class="int-badge"><div class="dot"></div>VAPI AI</div>
-  <div class="int-badge"><div class="dot"></div>SMS Reminders</div>
-</div>
-
-<!-- CALENDAR + FORM -->
-<div class="calendar-container">
-  <div class="calendar-panel">
-    <div class="panel-header">
-      <div>
-        <div class="panel-title">SELECT A DATE</div>
-        <div class="panel-subtitle">Gold dots = available slots</div>
-      </div>
-      <div class="cal-nav">
-        <button class="cal-nav-btn" onclick="changeMonth(-1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <div class="cal-month" id="cal-month-label">MARCH 2026</div>
-        <button class="cal-nav-btn" onclick="changeMonth(1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
-      </div>
-    </div>
-    <div class="cal-grid">
-      <div class="cal-weekdays">
-        <div class="cal-weekday">SUN</div><div class="cal-weekday">MON</div><div class="cal-weekday">TUE</div>
-        <div class="cal-weekday">WED</div><div class="cal-weekday">THU</div><div class="cal-weekday">FRI</div><div class="cal-weekday">SAT</div>
-      </div>
-      <div class="cal-days" id="cal-days"></div>
-    </div>
-
-    <!-- SCHEDULE INFO (before date picked) -->
-    <div id="info-panel" class="info-panel">
-      <div class="schedule-info">
-        <div class="schedule-info-title" id="info-title">ATHLETE ASSESSMENT SCHEDULE</div>
-        <div id="info-rows"></div>
-        <div class="schedule-note" id="info-note"></div>
-      </div>
-    </div>
-
-    <!-- TIME SLOTS (after date picked) -->
-    <div class="slots-section" id="slots-section" style="display:none">
-      <div class="slots-header">
-        <div class="slots-title" id="slots-label">AVAILABLE TIMES</div>
-        <div class="slots-cap" id="slots-cap"></div>
-      </div>
-      <div class="slots-grid" id="slots-grid"></div>
-    </div>
-  </div>
-
-  <!-- FORM PANEL -->
-  <div class="form-panel">
-    <div class="booking-summary">
-      <div class="summary-label">Your Session</div>
-      <div class="summary-session" id="summary-session">Athlete Assessment</div>
-      <div class="summary-datetime" id="summary-dt">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Select a date and time above
-      </div>
-    </div>
-    <div class="form-body">
-      <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-input" id="f-name" placeholder="First & Last Name"/></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Age</label><input type="number" class="form-input" id="f-age" placeholder="Age" min="8" max="75"/></div>
-        <div class="form-group"><label class="form-label">Sport / Activity</label><input type="text" class="form-input" id="f-sport" placeholder="e.g. Football"/></div>
-      </div>
-      <div class="form-group"><label class="form-label">Phone Number *</label><input type="tel" class="form-input" id="f-phone" placeholder="(314) 000-0000"/></div>
-      <div class="form-group"><label class="form-label">Email Address *</label><input type="email" class="form-input" id="f-email" placeholder="your@email.com"/></div>
-      <div class="form-group">
-        <label class="form-label">Primary Goal</label>
-        <select class="form-input" id="f-goal">
-          <option value="">Select your goal...</option>
-          <option>Improve speed & agility</option>
-          <option>Build strength & power</option>
-          <option>Improve sports performance</option>
-          <option>Weight loss & body composition</option>
-          <option>Bodybuilding / competition prep</option>
-          <option>General fitness & lifestyle</option>
-          <option>Injury prevention / recovery</option>
-          <option>College athletic prep</option>
-        </select>
-      </div>
-      <div class="form-group"><label class="form-label">Parent/Guardian (if under 18)</label><input type="text" class="form-input" id="f-guardian" placeholder="Guardian name (optional)"/></div>
-      <div class="form-group"><label class="form-label">Instagram Handle</label><input type="text" class="form-input" id="f-ig" placeholder="@handle (optional)"/></div>
-      <div class="divider"></div>
-      <button class="btn-book" onclick="submitBooking()"><span id="btn-text">CONFIRM SESSION — IT'S FREE</span></button>
-    </div>
-    <div class="sync-options">
-      <button class="sync-btn" onclick="addToCalendar('google')"><svg width="13" height="13" viewBox="0 0 24 24" fill="#4285F4"><path d="M20 3H4C2.9 3 2 3.9 2 5v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H5V8h14v11z"/></svg>Google</button>
-      <button class="sync-btn" onclick="addToCalendar('apple')"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83"/></svg>Apple</button>
-      <button class="sync-btn" onclick="addToCalendar('apple')"><svg width="13" height="13" viewBox="0 0 24 24" fill="#0078d4"><rect x="2" y="2" width="20" height="20" rx="2"/><path fill="white" d="M7 7h10v10H7z"/></svg>Outlook</button>
-    </div>
-  </div>
-</div>
-
-<!-- AI BUBBLE -->
-<div class="ai-bubble">
-  <button class="ai-trigger" onclick="toggleAI()" id="ai-trigger">
-    <img src="transparent_kinetic_ken.png" alt="FLEX AI" style="width:42px;height:42px;object-fit:contain;border-radius:50%;">
-    <div class="ai-notif" id="ai-notif" style="display:none">1</div>
+<!-- BOOKING AGENT -->
+<div class="ken" id="ken">
+  <button class="ken-btn" type="button" onclick="toggleAI()" aria-label="Book with Ken, our booking assistant">
+    <img src="transparent_kinetic_ken.png" alt="">
+    <span>Book with Ken</span>
+    <i class="dot" id="ai-notif" style="display:none"></i>
   </button>
 </div>
-
-<div class="ai-drawer" id="ai-drawer">
-  <div class="drawer-header">
-    <div class="drawer-avatar"><img src="transparent_kinetic_ken.png" alt="FLEX AI" style="width:36px;height:36px;object-fit:contain;border-radius:50%;"></div>
-    <div><div class="drawer-name">FLEX AI</div><div class="drawer-status"><div class="live-dot" style="width:6px;height:6px"></div>Online</div></div>
-    <button class="drawer-close" onclick="toggleAI()">×</button>
+<div class="drawer" id="ai-drawer" role="dialog" aria-label="Ken, Flex booking assistant">
+  <div class="dr-h">
+    <img src="transparent_kinetic_ken.png" alt="">
+    <div><b>Ken · Flex booking</b><small>Online now</small></div>
+    <button class="dr-x" type="button" onclick="toggleAI()" aria-label="Close">×</button>
   </div>
-  <div class="drawer-messages" id="drawer-msgs">
-    <div class="message assistant">Hey! 👋🏾 I'm FLEX — your AI booking assistant. I can help you find the right session, check availability, or answer questions about training with Coach Kenny.</div>
-    <div class="quick-replies">
-      <button class="quick-reply" onclick="sq('Book a free athlete assessment')">Book free assessment</button>
-      <button class="quick-reply" onclick="sq('What are all the session times?')">Session schedule</button>
-      <button class="quick-reply" onclick="sq('Tell me about pricing')">Pricing</button>
-    </div>
-  </div>
-  <div class="drawer-input-row">
-    <input type="text" class="drawer-input" id="drawer-in" placeholder="Ask FLEX anything..." onkeydown="if(event.key==='Enter')sendMsg()"/>
-    <button class="drawer-send" onclick="sendMsg()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
-  </div>
+  <div class="msgs" id="drawer-msgs"></div>
+  <form class="dr-in" onsubmit="event.preventDefault(); sendMsg();">
+    <input id="drawer-in" placeholder="Type your answer…" autocomplete="off" enterkeyhint="send">
+    <button type="submit" aria-label="Send"><svg><use href="#i-send"/></svg></button>
+  </form>
 </div>
 
 <!-- SUCCESS -->
-<div class="success-overlay" id="success-overlay">
-  <div class="success-card">
-    <div class="success-icon" style="animation: checkpop 0.6s cubic-bezier(0.34,1.56,0.64,1)">✓</div>
-    <div class="success-title">BOOKING CONFIRMED!</div>
-    <div class="success-sub">
-      <strong id="success-name"></strong><br>
-      <span id="success-datetime" style="color:var(--accent-gold);font-weight:600"></span><br><br>
-      You'll receive a confirmation text shortly.<br>
-      <span style="color:var(--muted);font-size:13px">Questions? Call or text <strong style="color:var(--white)">1-877-515-FLEX</strong></span>
+<div class="done-ov" id="success-overlay" role="dialog" aria-modal="true" aria-labelledby="done-h">
+  <div class="done-card">
+    <div class="done-ic"><svg><use href="#i-check"/></svg></div>
+    <h2 class="display" id="done-h">You're <em>booked.</em></h2>
+    <div class="when" id="success-datetime"></div>
+    <p><strong id="success-name"></strong>, a confirmation text is on its way.<br>Questions? Call or text <strong>1-877-515-FLEX</strong>.</p>
+    <div class="done-acts">
+      <button type="button" onclick="addToCalendar('google')">Google Calendar</button>
+      <button type="button" onclick="addToCalendar('apple')">Apple / Outlook</button>
+      <button type="button" class="full" onclick="finishBooking()">Done</button>
     </div>
-    <div class="success-actions">
-      <button class="btn-primary" onclick="addToCalendar('google')">ADD TO GOOGLE CALENDAR</button>
-      <button class="btn-primary" onclick="addToCalendar('apple')" style="background:#111;color:white;border:1px solid rgba(255,255,255,0.15)">ADD TO APPLE CALENDAR</button>
-      <button class="btn-secondary" onclick="document.getElementById('success-overlay').classList.remove('show')">Done</button>
-    </div>
-    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);letter-spacing:1px">POWERED BY GOELEV8.AI</div>
+    <div class="powered">POWERED BY GOELEV8.AI</div>
   </div>
 </div>
-<style>@keyframes checkpop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 // ===========================================
-// SCHEDULE CONFIGURATION
-// All times use 12-hour format. dow = day of week (0=Sun...6=Sat)
-// booked = current # of bookings (pull from API/Airtable in production)
+// SCHEDULE CONFIGURATION (fallback)
+// Replaced at runtime by /api/services (portal → Bookings). dow 0=Sun…6=Sat.
 // ===========================================
-
 const SESSIONS = {
   athlete: {
     name: 'Athlete Assessment',
     fullName: 'Free Athlete Performance Assessment',
     btnText: "CONFIRM SESSION — IT'S FREE",
     maxPerSlot: 10,
-    // Only Sun (0), Mon (1), Tue (2), Wed (3) have slots
     schedule: {
-      0: [{ time: '8:30 AM', booked: 3 }],
-      1: [{ time: '7:00 PM', booked: 7 }],
-      2: [{ time: '7:00 PM', booked: 2 }],
-      3: [{ time: '7:00 PM', booked: 10 }] // demo: Wed is full
+      0: [{ time: '8:30 AM', booked: 0 }],
+      1: [{ time: '7:00 PM', booked: 0 }],
+      2: [{ time: '7:00 PM', booked: 0 }],
+      3: [{ time: '7:00 PM', booked: 0 }]
     },
     infoTitle: 'ATHLETE ASSESSMENT SCHEDULE',
     infoNote: 'Max 10 athletes per session. Sessions book fast — grab your spot early.',
     infoRows: [
-      { day: 'Sunday',    time: '8:30 AM – 9:30 AM' },
-      { day: 'Monday',    time: '7:00 PM – 8:00 PM' },
-      { day: 'Tuesday',   time: '7:00 PM – 8:00 PM' },
-      { day: 'Wednesday', time: '7:00 PM – 8:00 PM' },
-      { day: 'Thursday',  time: null },
-      { day: 'Friday',    time: null },
-      { day: 'Saturday',  time: null },
+      { day: 'Sunday', time: '8:30 AM – 9:30 AM' }, { day: 'Monday', time: '7:00 PM – 8:00 PM' },
+      { day: 'Tuesday', time: '7:00 PM – 8:00 PM' }, { day: 'Wednesday', time: '7:00 PM – 8:00 PM' },
+      { day: 'Thursday', time: null }, { day: 'Friday', time: null }, { day: 'Saturday', time: null }
     ]
   },
-
   lifestyle: {
     name: 'Physique & Lifestyle',
     fullName: 'Physique & Lifestyle Group Session',
     btnText: 'CONFIRM GROUP SESSION',
-    maxPerSlot: null, // no cap
-    // Rule: bookable slots = all START times EXCEPT the last hour before close
-    // Sun: open 9:30–10:30 → only 9:30 bookable (10:30 = close, blocked)
-    // Mon: open 4:00–7:00 → 4,5,6 PM (7 PM blocked)
-    // Tue: open 7:30–9:00 → 7:30, 8:00 AM (9:00 blocked)
-    // Wed: open 5:00–7:00 → 5, 6 PM (7 PM blocked)
-    // Thu: open 7:30–9:00 → 7:30, 8:00 AM (9:00 blocked)
-    // Fri: open 7:30–10:00 → 7:30, 8:30, 9:00 AM (10:00 blocked)
-    // Sat: open 7:00–10:00 → 7:00, 8:00, 9:00 AM (10:00 blocked)
+    maxPerSlot: null,
     schedule: {
       0: [{ time: '9:30 AM', booked: 0 }],
       1: [{ time: '4:00 PM', booked: 0 }, { time: '5:00 PM', booked: 0 }, { time: '6:00 PM', booked: 0 }],
@@ -475,21 +448,12 @@ const SESSIONS = {
       3: [{ time: '5:00 PM', booked: 0 }, { time: '6:00 PM', booked: 0 }],
       4: [{ time: '7:30 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }],
       5: [{ time: '7:30 AM', booked: 0 }, { time: '8:30 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }],
-      6: [{ time: '7:00 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }],
+      6: [{ time: '7:00 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }]
     },
     infoTitle: 'PHYSIQUE & LIFESTYLE SCHEDULE',
     infoNote: 'Group sessions run daily. Last booking accepted 1 hour before closing time.',
-    infoRows: [
-      { day: 'Sunday',    time: '9:30 AM  (closes 10:30)' },
-      { day: 'Monday',    time: '4:00 – 6:00 PM  (closes 7)' },
-      { day: 'Tuesday',   time: '7:30 – 8:00 AM  (closes 9)' },
-      { day: 'Wednesday', time: '5:00 – 6:00 PM  (closes 7)' },
-      { day: 'Thursday',  time: '7:30 – 8:00 AM  (closes 9)' },
-      { day: 'Friday',    time: '7:30 – 9:00 AM  (closes 10)' },
-      { day: 'Saturday',  time: '7:00 – 9:00 AM  (closes 10)' },
-    ]
+    infoRows: []
   },
-
   bodybuilding: {
     name: 'Bodybuilding',
     fullName: 'Bodybuilding Group Session',
@@ -502,580 +466,719 @@ const SESSIONS = {
       3: [{ time: '5:00 PM', booked: 0 }, { time: '6:00 PM', booked: 0 }],
       4: [{ time: '7:30 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }],
       5: [{ time: '7:30 AM', booked: 0 }, { time: '8:30 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }],
-      6: [{ time: '7:00 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }],
+      6: [{ time: '7:00 AM', booked: 0 }, { time: '8:00 AM', booked: 0 }, { time: '9:00 AM', booked: 0 }]
     },
     infoTitle: 'BODYBUILDING SCHEDULE',
     infoNote: 'Group sessions run daily. Last booking accepted 1 hour before closing time.',
-    infoRows: [
-      { day: 'Sunday',    time: '9:30 AM  (closes 10:30)' },
-      { day: 'Monday',    time: '4:00 – 6:00 PM  (closes 7)' },
-      { day: 'Tuesday',   time: '7:30 – 8:00 AM  (closes 9)' },
-      { day: 'Wednesday', time: '5:00 – 6:00 PM  (closes 7)' },
-      { day: 'Thursday',  time: '7:30 – 8:00 AM  (closes 9)' },
-      { day: 'Friday',    time: '7:30 – 9:00 AM  (closes 10)' },
-      { day: 'Saturday',  time: '7:00 – 9:00 AM  (closes 10)' },
-    ]
+    infoRows: []
   }
 };
+
+// Presentation copy per session key. Services added later in the portal
+// fall back to their infoNote and a generic tag.
+const SESSION_COPY = {
+  athlete:      { tag: 'Free · 1-on-1', desc: 'Free 60-min session with Coach Kenny: movement screen, strength eval and a training roadmap.', expect: ['Speed & movement screen', 'Strength and power testing', 'A training roadmap for your sport', '100% free. No pressure.'] },
+  lifestyle:    { tag: 'Group · Physique', desc: 'Body composition, nutrition and lifestyle training for adults.', expect: ['Meet Coach Kenny and the crew', 'Goals and body-composition check-in', 'A plan built around your schedule', 'Pricing after your first visit, no hard sell'] },
+  bodybuilding: { tag: 'Group · Competitive', desc: 'Stage-ready coaching: posing, periodization and peak week.', expect: ['Physique assessment with a Pro Elite coach', 'Posing and stage-prep feedback', 'Periodized plan toward your show', 'Pricing after your first visit, no hard sell'] }
+};
+function copyFor(key) {
+  const s = SESSIONS[key] || {};
+  return SESSION_COPY[key] || { tag: s.maxPerSlot ? 'Limited spots' : 'Group', desc: s.infoNote || '', expect: ['Meet Coach Kenny', 'Goal check-in', 'Your plan, step by step'] };
+}
 
 // ===========================================
 // STATE
 // ===========================================
-const _now = new Date();
-let curMonth = _now.getMonth(), curYear = _now.getFullYear();
-let selDate = null, selTime = null, selType = 'athlete';
-// Live booking counts fetched from Supabase: { "Apr 5, 2026|7:00 PM": 3, ... }
-let liveBookingCounts = {};
-// One-off date blackouts managed via portal → Bookings → Days Off.
-// Keyed by ISO date (YYYY-MM-DD). Each entry is an array of
-// { start_time, end_time, reason }; an entry with both times null
-// means the entire day is blocked.
-let blockedDates = {};
+let selType = 'athlete';
+let sel = null;            // { y, m, d, dow, time }
+let horizon = 42;          // days of dates shown in the strip
+let counts = {};           // per session key: { "APR 5, 2026|7:00 PM": n }
+const countReqs = {};      // "key|y-m" -> Promise
+let blockedDates = {};     // ISO date -> [{ start_time, end_time, reason }]
 
-function isoDateFromYMD(y, m, d) {
-  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+// Gym runs on Central time; same-day booking is off (Kenny needs prep time).
+const CAL_TZ = 'America/Chicago';
+const MIN_LEAD_DAYS = 1;
+const MOS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAY_LABELS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const $ = id => document.getElementById(id);
+
+function todayInCalTz() {
+  const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: CAL_TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
+    .format(new Date()).split('-').map(Number);
+  return new Date(y, m - 1, d);
 }
-
+function minBookDate() { const t = todayInCalTz(); t.setDate(t.getDate() + MIN_LEAD_DAYS); return t; }
+function isoDateFromYMD(y, m, d) { return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; }
+function dateKey(y, m, d) { return MOS[m] + ' ' + d + ', ' + y; }   // matches /api/slots + /api/bookings
+function niceDate(y, m, d) { const dt = new Date(y, m, d); return DOW[dt.getDay()] + ', ' + MOS[m].charAt(0) + MOS[m].slice(1).toLowerCase() + ' ' + d; }
 function displayTimeTo24h(t) {
   const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(String(t).trim());
   if (!m) return null;
-  let h = parseInt(m[1], 10);
-  const min = m[2];
-  const period = m[3].toUpperCase();
-  if (period === 'PM' && h !== 12) h += 12;
-  if (period === 'AM' && h === 12) h = 0;
-  return String(h).padStart(2, '0') + ':' + min;
+  let h = parseInt(m[1], 10); const p = m[3].toUpperCase();
+  if (p === 'PM' && h !== 12) h += 12;
+  if (p === 'AM' && h === 12) h = 0;
+  return String(h).padStart(2, '0') + ':' + m[2];
 }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
-function isDayFullyBlocked(isoDate) {
-  const list = blockedDates[isoDate] || [];
-  return list.some(b => !b.start_time && !b.end_time);
-}
-
-function isSlotBlocked(isoDate, displayTime) {
-  const list = blockedDates[isoDate] || [];
+// ===========================================
+// AVAILABILITY
+// ===========================================
+function isDayFullyBlocked(iso) { return (blockedDates[iso] || []).some(b => !b.start_time && !b.end_time); }
+function isSlotBlocked(iso, displayTime) {
+  const list = blockedDates[iso] || [];
   if (!list.length) return false;
   if (list.some(b => !b.start_time && !b.end_time)) return true;
-  const slot24 = displayTimeTo24h(displayTime);
-  if (!slot24) return false;
-  return list.some(b => {
-    if (!b.start_time || !b.end_time) return false;
-    return slot24 >= b.start_time.slice(0, 5) && slot24 < b.end_time.slice(0, 5);
-  });
+  const s24 = displayTimeTo24h(displayTime);
+  if (!s24) return false;
+  return list.some(b => b.start_time && b.end_time && s24 >= b.start_time.slice(0, 5) && s24 < b.end_time.slice(0, 5));
 }
-
 function loadBlockedDates() {
-  return fetch('/api/blocked-dates')
-    .then(r => r.json())
-    .then(res => {
-      if (res.success && Array.isArray(res.blocks)) {
-        blockedDates = {};
-        for (const b of res.blocks) {
-          if (!blockedDates[b.date]) blockedDates[b.date] = [];
-          blockedDates[b.date].push(b);
-        }
-      }
-    })
-    .catch(err => console.warn('Blocked dates fetch failed:', err));
-}
-const MO = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-const MOS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-
-// ===========================================
-// SESSION SELECT
-// ===========================================
-function selectSession(card, type) {
-  document.querySelectorAll('.session-card').forEach(c => { c.classList.remove('active'); c.querySelector('.check-mark').innerHTML = ''; });
-  card.classList.add('active');
-  card.querySelector('.check-mark').innerHTML = '✓';
-  selType = type; selDate = null; selTime = null;
-  const s = SESSIONS[type];
-  document.getElementById('summary-session').textContent = s.name;
-  document.getElementById('summary-dt').innerHTML = calIcon() + ' Select a date and time above';
-  document.getElementById('summary-dt').classList.remove('set');
-  document.getElementById('btn-text').textContent = s.btnText;
-  document.getElementById('slots-section').style.display = 'none';
-  document.getElementById('info-panel').style.display = 'block';
-  renderInfo(type);
-  renderCalendar();
-}
-
-function calIcon() {
-  return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-}
-
-function renderInfo(type) {
-  const s = SESSIONS[type];
-  document.getElementById('info-title').textContent = s.infoTitle;
-  document.getElementById('info-note').textContent = s.infoNote;
-  document.getElementById('info-rows').innerHTML = s.infoRows.map(r =>
-    `<div class="schedule-row"><span class="sday">${r.day}</span><span class="stime${r.time ? '' : ' none'}">${r.time || 'No sessions'}</span></div>`
-  ).join('');
-}
-
-// ===========================================
-// LIVE SLOT AVAILABILITY FROM SUPABASE
-// ===========================================
-function fetchSlotCounts() {
-  fetch('/api/slots?month=' + curMonth + '&year=' + curYear + '&session_type=' + selType)
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-      if (res.success) {
-        liveBookingCounts = res.data || {};
-        console.log('Live slot counts:', liveBookingCounts);
-        // Re-render if a date is selected to update spot counts
-        if (selDate) {
-          var activeCell = document.querySelector('.cal-day.selected');
-          if (activeCell) pickDate(selDate.d, selDate.dow, activeCell);
-        }
-      }
-    })
-    .catch(function(err) { console.error('Slot fetch error:', err); });
-}
-
-function getLiveBooked(date, time) {
-  // date format: "APR 5, 2026", time: "7:00 PM" — match against Supabase data
-  var key = date + '|' + time;
-  return liveBookingCounts[key] || 0;
-}
-
-// ===========================================
-// CALENDAR RENDER
-// ===========================================
-function renderCalendar() {
-  document.getElementById('cal-month-label').textContent = `${MO[curMonth]} ${curYear}`;
-  const firstDay = new Date(curYear, curMonth, 1).getDay();
-  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
-  const today = new Date(); today.setHours(0,0,0,0);
-  const sched = SESSIONS[selType].schedule;
-  const grid = document.getElementById('cal-days');
-  grid.innerHTML = '';
-
-  for (let i = 0; i < firstDay; i++) {
-    const e = document.createElement('div'); e.className = 'cal-day empty'; grid.appendChild(e);
-  }
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const cell = document.createElement('div'); cell.className = 'cal-day';
-    cell.textContent = d;
-    const dt = new Date(curYear, curMonth, d); dt.setHours(0,0,0,0);
-    const dow = dt.getDay();
-    const isPast = dt < today;
-    const isToday = dt.getTime() === today.getTime();
-    const slots = sched[dow] || [];
-    const hasOpen = slots.some(sl => !isFull(sl));
-    const iso = isoDateFromYMD(curYear, curMonth, d);
-    const dayBlocked = isDayFullyBlocked(iso);
-
-    if (isPast) cell.classList.add('past');
-    else if (dayBlocked) {
-      cell.classList.add('no-slots');
-      cell.title = (blockedDates[iso] && blockedDates[iso][0] && blockedDates[iso][0].reason) || 'Unavailable';
+  return fetch('/api/blocked-dates').then(r => r.json()).then(res => {
+    if (res.success && Array.isArray(res.blocks)) {
+      blockedDates = {};
+      for (const b of res.blocks) (blockedDates[b.date] = blockedDates[b.date] || []).push(b);
     }
-    else if (isToday && hasOpen) { cell.classList.add('today', 'has-slots'); cell.onclick = () => pickDate(d, dow, cell); }
-    else if (isToday) { cell.classList.add('today', 'no-slots'); }
-    else if (hasOpen) { cell.classList.add('has-slots'); cell.onclick = () => pickDate(d, dow, cell); }
-    else if (!slots.length) { cell.classList.add('no-slots'); }
-    else { cell.classList.add('no-slots'); cell.title = 'All spots full'; }
-
-    if (selDate && selDate.y === curYear && selDate.m === curMonth && selDate.d === d) {
-      cell.classList.remove('no-slots'); cell.classList.add('selected');
-    }
-    grid.appendChild(cell);
-  }
-  // Fetch live booking counts from Supabase
-  fetchSlotCounts();
+  }).catch(err => console.warn('Blocked dates fetch failed:', err));
 }
-
-function getBookedCount(slot, dateStr) {
-  // Use live count from Supabase if available, else fall back to hardcoded
-  if (dateStr) {
-    var key = dateStr + '|' + slot.time;
-    if (liveBookingCounts[key] !== undefined) return liveBookingCounts[key];
+function fetchMonthCounts(type, y, m) {
+  const k = type + '|' + y + '-' + m;
+  if (!countReqs[k]) {
+    countReqs[k] = fetch('/api/slots?month=' + m + '&year=' + y + '&session_type=' + encodeURIComponent(type))
+      .then(r => r.json())
+      .then(res => { if (res.success) counts[type] = Object.assign(counts[type] || {}, res.data || {}); })
+      .catch(err => { console.error('Slot fetch error:', err); delete countReqs[k]; });
   }
-  return slot.booked;
+  return countReqs[k];
 }
+function loadCounts(type) {
+  const start = minBookDate(), end = new Date(start); end.setDate(end.getDate() + horizon);
+  const jobs = [];
+  for (let y = start.getFullYear(), m = start.getMonth(); y < end.getFullYear() || (y === end.getFullYear() && m <= end.getMonth()); ) {
+    jobs.push(fetchMonthCounts(type, y, m));
+    if (++m > 11) { m = 0; y++; }
+  }
+  return Promise.all(jobs);
+}
+function resetCounts() { counts = {}; for (const k in countReqs) delete countReqs[k]; }
 
-function isFull(slot) {
-  const max = SESSIONS[selType].maxPerSlot;
-  if (max === null) return false;
-  return slot.booked >= max;
+// Upcoming days that have scheduled slots for a session type.
+function buildDays(type, days) {
+  const s = SESSIONS[type]; if (!s) return [];
+  const start = minBookDate(), out = [];
+  const max = s.maxPerSlot != null ? s.maxPerSlot : null;
+  for (let i = 0; i < (days || horizon); i++) {
+    const dt = new Date(start); dt.setDate(start.getDate() + i);
+    const y = dt.getFullYear(), m = dt.getMonth(), d = dt.getDate(), dow = dt.getDay();
+    const base = s.schedule[dow] || [];
+    if (!base.length) continue;
+    const iso = isoDateFromYMD(y, m, d);
+    if (isDayFullyBlocked(iso)) continue;
+    const key = dateKey(y, m, d);
+    const slots = base.map(sl => {
+      const booked = (counts[type] && counts[type][key + '|' + sl.time]) || 0;
+      const full = max != null && booked >= max;
+      const blocked = isSlotBlocked(iso, sl.time);
+      return { time: sl.time, left: max != null ? Math.max(0, max - booked) : null, full, blocked, open: !full && !blocked };
+    });
+    out.push({ y, m, d, dow, iso, slots, open: slots.some(x => x.open) });
+  }
+  return out;
 }
 
 // ===========================================
-// DATE / TIME SELECTION
+// RENDER
 // ===========================================
-function pickDate(d, dow, cell) {
-  document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
-  cell.classList.add('selected');
-  selDate = { y: curYear, m: curMonth, d, dow };
-  selTime = null;
+function renderTiles() {
+  $('tiles').innerHTML = Object.keys(SESSIONS).map(k => {
+    const c = copyFor(k), on = k === selType;
+    return `<button type="button" class="tile${on ? ' on' : ''}" role="radio" aria-checked="${on}" data-k="${esc(k)}">
+      <span class="tag">${esc(c.tag)}</span><b>${esc(SESSIONS[k].name)}</b><p>${esc(c.desc)}</p>
+      <span class="chk"><svg><use href="#i-check"/></svg></span></button>`;
+  }).join('');
+  $('tiles').querySelectorAll('.tile').forEach(t => t.onclick = () => selectSession(t.dataset.k));
+}
 
-  const mo = MOS[curMonth];
-  document.getElementById('slots-label').textContent = `AVAILABLE TIMES — ${mo} ${d}`;
-  document.getElementById('info-panel').style.display = 'none';
-  document.getElementById('slots-section').style.display = 'block';
+function renderExpect() {
+  const c = copyFor(selType);
+  $('expect').innerHTML = c.expect.map(x => `<li><svg><use href="#i-check"/></svg>${esc(x)}</li>`).join('');
+  const isAth = selType === 'athlete';
+  document.querySelectorAll('.ath').forEach(el => el.classList.toggle('hide', !isAth));
+  $('lbl-name').innerHTML = (isAth ? "Athlete's full name" : 'Full name') + ' <em>*</em>';
+  updateGuardian();
+}
 
+function renderDates() {
+  const days = buildDays(selType);
   const s = SESSIONS[selType];
-  const capEl = document.getElementById('slots-cap');
-  capEl.textContent = s.maxPerSlot ? `Max ${s.maxPerSlot} per slot` : 'Group session';
+  $('time-meta').textContent = s.maxPerSlot ? 'Max ' + s.maxPerSlot + ' per session' : 'Group session';
+  // keep a valid selected day; otherwise jump to the first open one
+  if (sel && !days.some(x => x.y === sel.y && x.m === sel.m && x.d === sel.d && x.open)) sel = null;
+  if (!sel) { const first = days.find(x => x.open); if (first) sel = { y: first.y, m: first.m, d: first.d, dow: first.dow, time: null }; }
 
-  const slots = s.schedule[dow] || [];
-  const grid = document.getElementById('slots-grid');
-  grid.innerHTML = '';
-
-  if (!slots.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No sessions this day.<br>Please select another date.</div>';
-    return;
+  if (!days.length) {
+    $('dates').innerHTML = '';
+    $('times-h').textContent = '';
+    $('times').innerHTML = '<div class="empty" style="grid-column:1/-1">No open times in the next few weeks. Call or text <a href="tel:8775153539">1-877-515-FLEX</a> and we\'ll fit you in.</div>';
+    updateSummary(); return;
   }
-
-  // Build date string to match Supabase format (e.g. "APR 5, 2026")
-  const dateStr = mo + ' ' + d + ', ' + curYear;
-  const isoStr  = isoDateFromYMD(curYear, curMonth, d);
-
-  slots.forEach(sl => {
-    const booked = getBookedCount(sl, dateStr);
-    const full = s.maxPerSlot !== null && booked >= s.maxPerSlot;
-    const blocked = isSlotBlocked(isoStr, sl.time);
-    const el = document.createElement('div');
-    el.className = 'time-slot' + ((full || blocked) ? ' slot-full' : '');
-    const [t, per] = sl.time.split(' ');
-    let spotsHtml = '';
-    if (blocked) {
-      const blockReason = (blockedDates[isoStr] || []).find(b => b.reason)?.reason;
-      el.title = blockReason || 'Unavailable';
-    } else if (s.maxPerSlot) {
-      const left = Math.max(0, s.maxPerSlot - booked);
-      spotsHtml = `<span class="slot-spots" style="color:${left <= 3 ? 'var(--accent-gold)' : 'var(--muted)'}">${left} spot${left !== 1 ? 's' : ''} left</span>`;
+  $('dates').innerHTML = days.map(x => {
+    const on = sel && sel.y === x.y && sel.m === x.m && sel.d === x.d;
+    let status = 'Full';
+    if (x.open) {
+      const lefts = x.slots.filter(z => z.open && z.left != null).map(z => z.left);
+      status = lefts.length ? Math.max.apply(null, lefts) + ' left' : 'Open';
     }
-    el.innerHTML = `${t}<span class="time-period">${per}</span>${spotsHtml}`;
-    if (!full && !blocked) el.onclick = () => pickTime(el, sl.time, d, mo);
-    grid.appendChild(el);
+    return `<button type="button" class="date${on ? ' on' : ''}" data-i="${x.iso}" ${x.open ? '' : 'disabled'} aria-pressed="${!!on}" aria-label="${niceDate(x.y, x.m, x.d)}, ${status}">
+      <div class="dw">${DOW[x.dow]}</div><div class="dn">${x.d}</div><div class="dm">${MOS[x.m]}</div><span class="ds">${status}</span></button>`;
+  }).join('') + `<button type="button" class="more-dates" id="more-dates">Later<br>dates</button>`;
+  $('dates').querySelectorAll('.date').forEach(b => b.onclick = () => {
+    const x = days.find(z => z.iso === b.dataset.i);
+    sel = { y: x.y, m: x.m, d: x.d, dow: x.dow, time: null };
+    renderDates();
   });
+  $('more-dates').onclick = () => { horizon += 28; loadCounts(selType).then(renderDates); renderDates(); };
+  // keep the selected day in view without moving the page vertically
+  const strip = $('dates'), onBtn = strip.querySelector('.date.on');
+  if (onBtn && (onBtn.offsetLeft < strip.scrollLeft || onBtn.offsetLeft + onBtn.offsetWidth > strip.scrollLeft + strip.clientWidth)) strip.scrollLeft = onBtn.offsetLeft - 8;
+  renderTimes(days);
+  updateSummary();
 }
 
-function pickTime(el, time, d, mo) {
-  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-  el.classList.add('selected');
-  selTime = time;
-  const dt = document.getElementById('summary-dt');
-  dt.innerHTML = `${calIcon()} ${mo} ${d}, ${curYear} at ${time}`;
-  dt.classList.add('set');
+function renderTimes(days) {
+  const day = sel && days.find(x => x.y === sel.y && x.m === sel.m && x.d === sel.d);
+  if (!day) { $('times-h').textContent = ''; $('times').innerHTML = ''; return; }
+  $('times-h').textContent = 'Times · ' + niceDate(day.y, day.m, day.d);
+  $('times').innerHTML = day.slots.map(z => {
+    const on = sel.time === z.time;
+    let sub = z.blocked ? 'Unavailable' : z.full ? 'Full' : z.left != null ? z.left + ' spot' + (z.left !== 1 ? 's' : '') + ' left' : 'Open';
+    return `<button type="button" class="time${on ? ' on' : ''}" data-t="${esc(z.time)}" ${z.open ? '' : 'disabled'} aria-pressed="${on}">
+      <b>${esc(z.time)}</b><small class="${z.open && z.left != null && z.left <= 3 ? 'low' : ''}">${sub}</small></button>`;
+  }).join('');
+  $('times').querySelectorAll('.time').forEach(b => b.onclick = () => pickTime(b.dataset.t));
 }
 
-function changeMonth(dir) {
-  curMonth += dir;
-  if (curMonth > 11) { curMonth = 0; curYear++; }
-  if (curMonth < 0) { curMonth = 11; curYear--; }
-  selDate = null; selTime = null;
-  document.getElementById('slots-section').style.display = 'none';
-  document.getElementById('info-panel').style.display = 'block';
-  renderCalendar();
+function pickTime(time) {
+  if (!sel) return;
+  sel.time = time;
+  renderDates();
+  gtag('event', 'booking_time_selected', { session_type: selType });
+  if (window.innerWidth < 960) setTimeout(goToInfo, 180);
 }
+
+function updateSummary() {
+  const s = SESSIONS[selType];
+  const ready = !!(sel && sel.time);
+  const label = ready ? niceDate(sel.y, sel.m, sel.d) + ' · ' + sel.time : null;
+  $('btn-book').disabled = !ready;
+  $('btn-text').textContent = ready ? (s.btnText || 'Confirm session') : 'Pick a time above';
+  $('btn-sub').textContent = ready ? s.name + ' · ' + label : 'Then confirm here';
+  $('mbar-k').textContent = s.name;
+  $('mbar-v').textContent = ready ? label : 'Pick a time';
+  $('st2').className = ready ? 'done' : 'on';
+  $('st3').className = ready ? 'on' : '';
+  syncMbar();
+}
+
+function selectSession(type) {
+  if (!SESSIONS[type]) return;
+  if (type !== selType) { selType = type; sel = null; }
+  renderTiles(); renderExpect();
+  $('dates').innerHTML = '<div class="skel" style="flex:1"></div>';
+  $('times').innerHTML = ''; $('times-h').textContent = '';
+  renderDates();
+  loadCounts(type).then(() => { if (selType === type) renderDates(); });
+}
+
+function goToInfo() {
+  $('sec-info').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const first = ['f-name', 'f-phone', 'f-email'].map($).find(i => !i.value.trim());
+  if (first && window.innerWidth >= 960) first.focus({ preventScroll: true });
+}
+
+// guardian field only for minors
+function updateGuardian() {
+  const age = parseInt($('f-age').value, 10);
+  $('guardian-wrap').classList.toggle('hide', !(selType === 'athlete' && age > 0 && age < 18));
+}
+$('f-age').addEventListener('input', updateGuardian);
+
+// mobile bar: visible after a time is picked, hidden while the form is on screen
+let infoVisible = false;
+function syncMbar() {
+  const show = window.innerWidth < 960 && !!(sel && sel.time) && !infoVisible && !$('ai-drawer').classList.contains('open');
+  $('mbar').classList.toggle('show', show);
+  document.body.classList.toggle('mbar-on', show);
+}
+if ('IntersectionObserver' in window) {
+  new IntersectionObserver(es => { infoVisible = es[0].isIntersecting; syncMbar(); }, { threshold: 0.15 }).observe($('sec-info'));
+}
+window.addEventListener('resize', syncMbar);
 
 // ===========================================
-// BOOKING SUBMIT
+// SUBMIT
 // ===========================================
-function submitBooking() {
-  const name = document.getElementById('f-name').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  if (!name || !phone || !email) { alert('Please fill in your name, phone, and email.'); return; }
-  if (!selDate || !selTime) { alert('Please select a date and time for your session.'); return; }
+function showErr(msg) { const e = $('form-err'); e.textContent = msg; e.classList.toggle('hide', !msg); }
+function cleanPhone(p) { let d = String(p).replace(/\D/g, ''); if (d.length === 11 && d[0] === '1') d = d.slice(1); return d; }
+function validate() {
+  const bad = [];
+  const name = $('f-name').value.trim(), phone = cleanPhone($('f-phone').value), email = $('f-email').value.trim();
+  if (name.length < 2) bad.push(['f-name', 'your name']);
+  if (phone.length !== 10) bad.push(['f-phone', 'a 10-digit mobile number']);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) bad.push(['f-email', 'a valid email']);
+  ['f-name', 'f-phone', 'f-email'].forEach(id => $(id).classList.remove('bad'));
+  bad.forEach(b => $(b[0]).classList.add('bad'));
+  return bad;
+}
+['f-name', 'f-phone', 'f-email'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('bad')));
+
+let submitting = false;
+// opts.source lets the booking agent tag its bookings. Returns a promise
+// resolving { ok, error }.
+function submitBooking(opts) {
+  opts = opts || {};
+  if (submitting) return Promise.resolve({ ok: false, error: 'Already sending.' });
+  showErr('');
+  const bad = validate();
+  if (bad.length) {
+    const msg = 'Please add ' + bad.map(b => b[1]).join(', ').replace(/, ([^,]*)$/, ' and $1') + '.';
+    if (!opts.quiet) { showErr(msg); $(bad[0][0]).focus(); }
+    return Promise.resolve({ ok: false, error: msg });
+  }
+  if (!sel || !sel.time) { const m = 'Please pick a date and time.'; if (!opts.quiet) showErr(m); return Promise.resolve({ ok: false, error: m }); }
+  if (new Date(sel.y, sel.m, sel.d) < minBookDate()) {
+    sel = null; renderDates();
+    const m = 'Same-day booking is not available. Please choose a date starting tomorrow.';
+    if (!opts.quiet) showErr(m);
+    return Promise.resolve({ ok: false, error: m });
+  }
 
   const s = SESSIONS[selType];
-  const mo = MOS[selDate.m];
+  const name = $('f-name').value.trim();
+  const when = dateKey(sel.y, sel.m, sel.d);
   const payload = {
     session_type: selType,
     session_name: s.fullName,
-    date: `${mo} ${selDate.d}, ${selDate.y}`,
-    time: selTime,
-    name, phone, email,
-    age: document.getElementById('f-age').value,
-    sport: document.getElementById('f-sport').value,
-    goal: document.getElementById('f-goal').value,
-    guardian: document.getElementById('f-guardian').value,
-    instagram: document.getElementById('f-ig').value,
-    source: 'booking-calendar',
+    date: when,
+    time: sel.time,
+    name,
+    phone: $('f-phone').value.trim(),
+    email: $('f-email').value.trim(),
+    age: selType === 'athlete' ? $('f-age').value : '',
+    sport: selType === 'athlete' ? $('f-sport').value.trim() : '',
+    goal: $('f-goal').value,
+    guardian: $('guardian-wrap').classList.contains('hide') ? '' : $('f-guardian').value.trim(),
+    instagram: '',
+    source: opts.source || 'booking-calendar',
     timestamp: new Date().toISOString()
   };
 
-  console.log('Booking payload:', payload);
+  submitting = true;
+  const btn = $('btn-book'); btn.disabled = true;
+  $('btn-text').textContent = 'Booking…';
 
-  var btn = document.querySelector('.btn-book');
-  btn.disabled = true;
-  document.getElementById('btn-text').textContent = 'SENDING...';
+  return fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) { const e = new Error(data.error || 'Booking failed'); e.fromServer = true; throw e; }
+      gtag('event', 'booking_confirmed', { session_type: selType, source: payload.source });
+      $('success-name').textContent = name.split(' ')[0];
+      $('success-datetime').textContent = niceDate(sel.y, sel.m, sel.d) + ' · ' + sel.time;
+      $('ai-drawer').classList.remove('open');
+      $('success-overlay').classList.add('show');
+      redirectTimer = setTimeout(finishBooking, 8000);
+      return { ok: true };
+    })
+    .catch(err => {
+      console.error('Booking error:', err);
+      const msg = err && err.fromServer ? err.message : 'Something went wrong sending your booking. Please try again, or call 1-877-515-FLEX.';
+      if (!opts.quiet) showErr(msg);
+      if (err && err.fromServer) { resetCounts(); loadCounts(selType).then(renderDates); }
+      return { ok: false, error: msg };
+    })
+    .finally(() => { submitting = false; updateSummary(); });
+}
 
-  // Write to Supabase + leads + portal webhook + SMS via /api/bookings
-  fetch('/api/bookings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    if (!data.success) throw new Error(data.error || 'Booking failed');
-    console.log('Booking confirmed:', data);
-    document.getElementById('success-name').textContent = name;
-    document.getElementById('success-datetime').textContent = mo + ' ' + selDate.d + ', ' + selDate.y + ' at ' + selTime;
-    document.getElementById('success-overlay').classList.add('show');
-    // Redirect to thank-you page after 6 seconds
-    setTimeout(function() {
-      window.location.href = 'https://theflexfacility.com/thank-you?name=' + encodeURIComponent(name) + '&date=' + encodeURIComponent(mo + ' ' + selDate.d + ', ' + selDate.y + ' at ' + selTime);
-    }, 6000);
-  })
-  .catch(function(err) {
-    console.error('Booking error:', err);
-    alert('Something went wrong sending your booking. Please try again.');
-  })
-  .finally(function() {
-    btn.disabled = false;
-    document.getElementById('btn-text').textContent = SESSIONS[selType].btnText;
-  });
+let redirectTimer = null;
+function finishBooking() {
+  clearTimeout(redirectTimer);
+  if (!sel || !sel.time) { $('success-overlay').classList.remove('show'); return; }
+  const name = $('f-name').value.trim();
+  window.location.href = 'https://theflexfacility.com/thank-you?name=' + encodeURIComponent(name) +
+    '&date=' + encodeURIComponent(dateKey(sel.y, sel.m, sel.d) + ' at ' + sel.time);
 }
 
 // ===========================================
 // CALENDAR ADD
 // ===========================================
 function addToCalendar(type) {
-  if (!selDate || !selTime) return;
+  clearTimeout(redirectTimer);
+  if (!sel || !sel.time) return;
   const s = SESSIONS[selType];
-  const title = encodeURIComponent(`The FLEX Facility — ${s.name}`);
-  const loc = encodeURIComponent('4132 Shore Line Dr, Earth City, MO 63045');
-  const d = `${selDate.y}${String(selDate.m+1).padStart(2,'0')}${String(selDate.d).padStart(2,'0')}`;
+  const title = 'The FLEX Facility — ' + s.name;
+  const loc = '4132 Shore Line Dr, Earth City, MO 63045';
+  const d = `${sel.y}${String(sel.m + 1).padStart(2, '0')}${String(sel.d).padStart(2, '0')}`;
+  const t24 = displayTimeTo24h(sel.time) || '09:00';
+  const sh = parseInt(t24.slice(0, 2), 10), smin = t24.slice(3);
+  const start = d + 'T' + String(sh).padStart(2, '0') + smin + '00';
+  const end = d + 'T' + String(Math.min(sh + 1, 23)).padStart(2, '0') + smin + '00';
   if (type === 'google') {
-    window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${d}T090000/${d}T100000&location=${loc}`, '_blank');
+    window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&ctz=${CAL_TZ}&location=${encodeURIComponent(loc)}`, '_blank');
   } else {
-    const blob = new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${decodeURIComponent(title)}\nLOCATION:4132 Shore Line Dr, Earth City, MO 63045\nDTSTART:${d}T090000\nDTEND:${d}T100000\nEND:VEVENT\nEND:VCALENDAR`], {type:'text/calendar'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'flex-session.ics'; a.click();
+    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nLOCATION:${loc}\nDTSTART;TZID=${CAL_TZ}:${start}\nDTEND;TZID=${CAL_TZ}:${end}\nEND:VEVENT\nEND:VCALENDAR`;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'flex-session.ics'; a.click();
   }
 }
 
 // ===========================================
-// AI DRAWER
+// KEN — BOOKING AGENT
+// Walks visitors through a booking in chat: session → name → (athlete
+// details) → time → phone → email → (guardian) → confirm, then books
+// through the same /api/bookings call as the form. Questions get answered
+// at any step, then Ken steers back to the booking.
 // ===========================================
-let aiOpen = false;
-function toggleAI() {
-  aiOpen = !aiOpen;
-  document.getElementById('ai-drawer').classList.toggle('open', aiOpen);
-  document.getElementById('ai-notif').style.display = 'none';
-  if (aiOpen) setTimeout(() => document.getElementById('drawer-in').focus(), 300);
+let aiOpen = false, agentStarted = false;
+const A = { step: null, d: {}, offset: 0 };
+const SPORTS = ['Football', 'Basketball', 'Baseball', 'Soccer', 'Track', 'Volleyball'];
+
+function toggleAI(force) {
+  aiOpen = typeof force === 'boolean' ? force : !aiOpen;
+  $('ai-drawer').classList.toggle('open', aiOpen);
+  $('ai-notif').style.display = 'none';
+  if (aiOpen && !agentStarted) { agentStarted = true; startAgent(); }
+  if (aiOpen && window.innerWidth >= 640) setTimeout(() => $('drawer-in').focus(), 250);
+  syncMbar();
+  if (aiOpen) gtag('event', 'booking_agent_open');
+}
+
+function addMsg(html, role, cls) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role + (cls ? ' ' + cls : '');
+  if (role === 'me') div.textContent = html; else div.innerHTML = html;
+  $('drawer-msgs').appendChild(div); scrollMsgs();
+  return div;
+}
+function scrollMsgs() { const m = $('drawer-msgs'); m.scrollTop = m.scrollHeight; }
+function clearChips() { $('drawer-msgs').querySelectorAll('.chips').forEach(c => c.remove()); }
+function chips(list) {
+  clearChips();
+  const wrap = document.createElement('div'); wrap.className = 'chips';
+  list.forEach(c => {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = 'chip' + (c.primary ? ' primary' : '');
+    b.textContent = c.label;
+    b.onclick = () => { clearChips(); addMsg(c.say || c.label, 'me'); c.run(); };
+    wrap.appendChild(b);
+  });
+  $('drawer-msgs').appendChild(wrap); scrollMsgs();
+}
+function say(html, then) {
+  clearChips();
+  const t = document.createElement('div'); t.className = 'msg bot typing'; t.innerHTML = '<i></i><i></i><i></i>';
+  $('drawer-msgs').appendChild(t); scrollMsgs();
+  const delay = Math.min(1100, 380 + html.replace(/<[^>]+>/g, '').length * 9);
+  setTimeout(() => { t.remove(); addMsg(html, 'bot'); if (then) then(); }, delay);
+}
+function first() { return (A.d.name || '').split(' ')[0]; }
+function isAth() { return A.d.type === 'athlete'; }
+
+function startAgent() {
+  say("Hey there! 👋🏾 I'm Ken, the Flex Facility booking assistant. I can get you on Coach Kenny's schedule in about a minute, right here in the chat.", () => ask('type'));
+}
+
+function ask(step) {
+  A.step = step;
+  if (step === 'type') {
+    say('What are we booking today?', () => chips(Object.keys(SESSIONS).map(k => ({
+      label: SESSIONS[k].name + (k === 'athlete' ? ' (free)' : ''),
+      run: () => setType(k)
+    })).concat([{ label: 'I have a question first', run: () => { A.step = 'faq'; say('Of course, ask me anything. Hours, location, pricing, what happens at the session…'); } }])));
+  } else if (step === 'name') {
+    say(isAth() ? "Love it. What's the athlete's first and last name?" : "Great choice. What's your first and last name?");
+  } else if (step === 'age') {
+    say(`Nice to meet you, ${esc(first())}! How old is ${isAth() ? esc(first()) : 'the athlete'}?`);
+  } else if (step === 'sport') {
+    say(`What sport does ${esc(first())} play?`, () => chips(SPORTS.map(s => ({ label: s, run: () => answer(s) }))
+      .concat([{ label: 'Multiple / other', run: () => { say('No problem. Type it in for me.'); } }])));
+  } else if (step === 'goal') {
+    say(`And what's the #1 thing ${esc(first())} wants to improve?`, () => chips([
+      'Increase speed & agility', 'Build strength & power', 'Prepare for tryouts / combine', 'College athletic prep', 'Improve sports performance'
+    ].map(g => ({ label: g, run: () => answer(g) })).concat([{ label: 'Not sure yet', run: () => answer('') }])));
+  } else if (step === 'slot') {
+    showSlots();
+  } else if (step === 'phone') {
+    say(`What's the best mobile number? I'll text the confirmation and a reminder there.`);
+  } else if (step === 'email') {
+    say('And an email for the confirmation?');
+  } else if (step === 'guardian') {
+    say(`Since ${esc(first())} is under 18, what's a parent or guardian's name?`);
+  } else if (step === 'confirm') {
+    confirmStep();
+  }
+}
+
+function setType(k) {
+  A.d.type = k; A.offset = 0;
+  if (k !== selType) selectSession(k);
+  if (A.d.name) next('name'); else ask('name');
+}
+
+// Order of questions after each step.
+function next(after) {
+  const order = ['type', 'name', 'age', 'sport', 'goal', 'slot', 'phone', 'email', 'guardian', 'confirm'];
+  for (let i = order.indexOf(after) + 1; i < order.length; i++) {
+    const s = order[i];
+    if ((s === 'age' || s === 'sport' || s === 'goal') && !isAth()) continue;
+    if (s === 'guardian' && !(isAth() && A.d.age && A.d.age < 18)) continue;
+    if (s === 'age' && A.d.age) continue;
+    if (s === 'sport' && A.d.sport) continue;
+    if (s === 'goal' && A.d.goal !== undefined) continue;
+    if (s === 'phone' && A.d.phone) continue;
+    if (s === 'email' && A.d.email) continue;
+    if (s === 'guardian' && A.d.guardian) continue;
+    return ask(s);
+  }
+}
+
+function showSlots() {
+  const type = A.d.type;
+  say('One sec, checking the calendar…', () => {
+    loadCounts(type).then(() => {
+      const open = [];
+      buildDays(type, horizon + 28).forEach(x => x.slots.forEach(z => { if (z.open) open.push({ x, z }); }));
+      if (!open.length) {
+        say('Hmm, I\'m not seeing open times in the next few weeks. Call or text <a href="tel:8775153539">1-877-515-FLEX</a> and the team will fit you in.');
+        return;
+      }
+      if (A.offset >= open.length) A.offset = 0;
+      const page = open.slice(A.offset, A.offset + 6);
+      const intro = A.offset === 0 ? 'Here are the next open times. Tap the one that works best:' : 'Here are some later options:';
+      say(intro, () => chips(page.map(o => ({
+        label: niceDate(o.x.y, o.x.m, o.x.d) + ' · ' + o.z.time + (o.z.left != null && o.z.left <= 3 ? ` (${o.z.left} left)` : ''),
+        run: () => {
+          A.d.slot = { y: o.x.y, m: o.x.m, d: o.x.d, dow: o.x.dow, time: o.z.time };
+          sel = Object.assign({}, A.d.slot); renderDates();
+          say(`${esc(niceDate(o.x.y, o.x.m, o.x.d))} at ${esc(o.z.time)}. Locked in. 💪🏾`, () => next('slot'));
+        }
+      })).concat(open.length > A.offset + 6 ? [{ label: 'Later times', run: () => { A.offset += 6; showSlots(); } }] : [])));
+    });
+  });
+}
+
+function confirmStep() {
+  const s = SESSIONS[A.d.type], sl = A.d.slot;
+  const rows = [
+    ['Session', s.name], ['When', niceDate(sl.y, sl.m, sl.d) + ' · ' + sl.time], ['Name', A.d.name],
+    isAth() && A.d.age ? ['Age', A.d.age] : null, isAth() && A.d.sport ? ['Sport', A.d.sport] : null,
+    A.d.goal ? ['Goal', A.d.goal] : null, ['Phone', A.d.phone], ['Email', A.d.email],
+    A.d.guardian ? ['Guardian', A.d.guardian] : null
+  ].filter(Boolean);
+  say(`Here's everything, ${esc(first())}. Look right?`, () => {
+    addMsg('<b>Your booking</b><dl>' + rows.map(r => `<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('') + '</dl>', 'bot', 'sum');
+    chips([
+      { label: 'Yes, book it ✓', primary: true, run: book },
+      { label: 'Change the time', run: () => { A.offset = 0; ask('slot'); } },
+      { label: 'Fix my info', run: () => { A.d.phone = A.d.email = ''; ask('phone'); } },
+      { label: 'Start over', run: () => { A.d = {}; ask('type'); } }
+    ]);
+  });
+}
+
+function book() {
+  // Mirror the conversation into the page form, then use the same submit path.
+  if (selType !== A.d.type) selectSession(A.d.type);
+  sel = Object.assign({}, A.d.slot);
+  $('f-name').value = A.d.name || '';
+  $('f-phone').value = A.d.phone || '';
+  $('f-email').value = A.d.email || '';
+  $('f-age').value = A.d.age || '';
+  $('f-sport').value = A.d.sport || '';
+  setGoal(A.d.goal || '');
+  updateGuardian();
+  $('f-guardian').value = A.d.guardian || '';
+  renderDates();
+  say('Booking you now…', () => {
+    submitBooking({ source: 'booking-agent', quiet: true }).then(r => {
+      if (r.ok) return;
+      say(esc(r.error), () => chips([
+        { label: 'Pick another time', primary: true, run: () => { A.offset = 0; ask('slot'); } },
+        { label: 'Try again', run: book },
+        { label: 'Call 1-877-515-FLEX', run: () => { window.location.href = 'tel:8775153539'; } }
+      ]));
+    });
+  });
+}
+
+function answer(raw) {
+  const v = String(raw).trim();
+  const step = A.step;
+  if (step === 'name') {
+    if (v.length < 2 || /\d/.test(v)) return say("I didn't quite catch that. What's the full name?");
+    A.d.name = v.replace(/\b\w/g, c => c.toUpperCase());
+    if (!v.includes(' ')) { A.step = 'lastname'; return say(`Thanks, ${esc(A.d.name)}! And the last name?`); }
+    return next('name');
+  }
+  if (step === 'lastname') { A.d.name = (A.d.name + ' ' + v).trim().replace(/\b\w/g, c => c.toUpperCase()); return next('name'); }
+  if (step === 'age') {
+    const n = parseInt(v.replace(/\D/g, ''), 10);
+    if (!(n >= 6 && n <= 80)) return say('Just the age as a number works, like 14.');
+    A.d.age = n; return next('age');
+  }
+  if (step === 'sport') { A.d.sport = v; return next('sport'); }
+  if (step === 'goal') { A.d.goal = v; return next('goal'); }
+  if (step === 'phone') {
+    const p = cleanPhone(v);
+    if (p.length !== 10) return say('Hmm, that doesn\'t look like a 10-digit number. Try again? Like 314-555-0123.');
+    A.d.phone = '(' + p.slice(0, 3) + ') ' + p.slice(3, 6) + '-' + p.slice(6); return next('phone');
+  }
+  if (step === 'email') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return say("That email doesn't look quite right. Mind checking it?");
+    A.d.email = v; return next('email');
+  }
+  if (step === 'guardian') {
+    if (v.length < 2) return say("What's the parent or guardian's name?");
+    A.d.guardian = v.replace(/\b\w/g, c => c.toUpperCase()); return next('guardian');
+  }
+}
+
+function isQuestion(t) {
+  if (/\?\s*$/.test(t)) return true;
+  // names can look like question words ("Will", "Wes"), so only trust "?" there
+  if (['name', 'lastname', 'guardian', 'sport'].includes(A.step)) return false;
+  return /^(what|how|when|where|who|why|do|does|is|are|can|could|price|cost|hours|address|location)\b/i.test(t);
 }
 
 function sendMsg() {
-  const inp = document.getElementById('drawer-in');
-  const txt = inp.value.trim(); if (!txt) return;
-  inp.value = '';
-  addMsg(txt, 'user'); showTyping();
-  setTimeout(() => { removeTyping(); addMsg(aiReply(txt), 'assistant'); }, 1000 + Math.random() * 600);
+  const inp = $('drawer-in'); const txt = inp.value.trim(); if (!txt) return;
+  inp.value = ''; clearChips(); addMsg(txt, 'me');
+  if (!A.step) { startAgent(); return; }
+  if (A.step === 'confirm' && /^(y|yes|yeah|yep|yup|ok|okay|sure|confirm|book( it)?)\b/i.test(txt)) return book();
+  if (A.step === 'faq' || A.step === 'type' || A.step === 'slot' || A.step === 'confirm' || isQuestion(txt)) {
+    // Typed a session name at the session step? Treat it as the pick.
+    if (A.step === 'type') {
+      const k = Object.keys(SESSIONS).find(k => txt.toLowerCase().includes(SESSIONS[k].name.toLowerCase().split(' ')[0]) || txt.toLowerCase().includes(k));
+      if (k) return setType(k);
+      if (/assess|free|athlete|sport/i.test(txt)) return setType('athlete');
+    }
+    const back = A.step === 'faq' ? 'type' : A.step;
+    say(faq(txt), () => {
+      if (back === 'type') chips([{ label: 'Book a time', primary: true, run: () => ask('type') }, { label: 'Another question', run: () => { A.step = 'faq'; say('Sure, go ahead.'); } }]);
+      else ask(back);
+    });
+    return;
+  }
+  answer(txt);
 }
 
-function sq(txt) {
-  const qr = document.querySelector('.quick-replies'); if (qr) qr.remove();
-  addMsg(txt, 'user'); showTyping();
-  setTimeout(() => { removeTyping(); addMsg(aiReply(txt), 'assistant'); }, 900 + Math.random() * 400);
+function scheduleText() {
+  return Object.keys(SESSIONS).map(k => {
+    const s = SESSIONS[k];
+    const rows = (s.infoRows && s.infoRows.length ? s.infoRows : DAY_LABELS.map((day, dow) => ({ day, time: (s.schedule[dow] || []).map(x => x.time).join(', ') || null })))
+      .filter(r => r.time).map(r => r.day.slice(0, 3) + ' ' + r.time);
+    return `<b>${esc(s.name)}:</b> ${esc(rows.join(' · '))}`;
+  }).join('<br><br>');
 }
 
-function addMsg(text, role) {
-  const msgs = document.getElementById('drawer-msgs');
-  const div = document.createElement('div'); div.className = `message ${role}`; div.innerHTML = text;
-  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
-}
-
-function showTyping() {
-  const msgs = document.getElementById('drawer-msgs');
-  const div = document.createElement('div'); div.className = 'message assistant typing-indicator'; div.id = 'typing';
-  div.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
-}
-function removeTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
-
-function aiReply(msg) {
+function faq(msg) {
   const m = msg.toLowerCase();
-  if (m.includes('schedule') || m.includes('time') || m.includes('when') || m.includes('hour') || m.includes('all')) {
-    return '<b>Athlete Assessment:</b> Sun 8:30 AM · Mon–Wed 7:00 PM (max 10 spots) 💪🏾<br><br><b>Physique & Lifestyle / Bodybuilding (Group):</b><br>Sun: 9:30 AM<br>Mon: 4, 5, 6 PM<br>Tue/Thu: 7:30, 8:00 AM<br>Wed: 5, 6 PM<br>Fri: 7:30, 8:30, 9:00 AM<br>Sat: 7, 8, 9 AM';
-  }
-  if (m.includes('book') || m.includes('assessment') || m.includes('sign up') || m.includes('reserve')) {
-    return "Simple! Pick your session type at the top, tap a gold date, choose a time slot, fill in your info, and done. The whole thing takes 2 minutes. Athlete Assessments are 100% free 💪🏾";
-  }
-  if (m.includes('athlete') || m.includes('sport') || m.includes('performance') || m.includes('free')) {
-    return "The Athlete Assessment is a free 60-min 1-on-1 with Coach Kenny — movement screening, strength evaluation, and your personal training plan. Available Sun 8:30 AM and Mon–Wed at 7 PM. Only 10 spots per session so grab yours early!";
-  }
-  if (m.includes('lifestyle') || m.includes('physique') || m.includes('body comp') || m.includes('weight') || m.includes('fat')) {
-    return "Physique & Lifestyle is group training focused on body composition, nutrition, and sustainable results for adults. Sessions run every day of the week — multiple time slots available. Great for anyone who wants to look and feel their best long-term.";
-  }
-  if (m.includes('bodybuilding') || m.includes('compete') || m.includes('stage') || m.includes('posing') || m.includes('contest')) {
-    return "The Bodybuilding track is for competitive athletes and serious builders. Coach Kenny covers posing, periodization, and peak week protocols. Group sessions run daily — same schedule as the Physique & Lifestyle sessions. Pick your slot and let's build! 💪🏾";
-  }
-  if (m.includes('price') || m.includes('cost') || m.includes('how much') || m.includes('membership')) {
-    return "The Athlete Assessment is completely FREE — no catch. Group session pricing (Physique & Lifestyle / Bodybuilding) is discussed after your first visit based on your goals and schedule. No pressure, no hard sell.";
-  }
-  if (m.includes('location') || m.includes('address') || m.includes('where') || m.includes('directions')) {
-    return `4132 Shore Line Dr, Earth City, MO 63045. Easy highway access, good parking. <a href="https://maps.google.com/?q=4132+Shore+Line+Dr+Earth+City+MO" target="_blank" style="color:var(--accent-gold)">Get Directions →</a>`;
-  }
-  if (m.includes('kenny') || m.includes('coach') || m.includes('trainer')) {
-    return "Coach Kenny Sims is the founder of The FLEX Facility. He brings elite-level sports performance methodology to athletes at every level — from youth to collegiate. His coaching is results-first, athlete-centered, and built on real science.";
-  }
-  return "Good question 💪🏾 For anything specific, the best move is locking in your free Athlete Assessment — Coach Kenny will answer everything in person. Want help picking a time on the calendar?";
+  if (/schedul|time|when|hour|day|open/.test(m)) return 'Here\'s the weekly schedule:<br><br>' + scheduleText();
+  if (/price|cost|how much|membership|pay|\$/.test(m)) return 'The Athlete Assessment is completely FREE, no catch. Group session pricing (Physique & Lifestyle and Bodybuilding) is covered after your first visit, based on your goals and schedule. No pressure, no hard sell.';
+  if (/where|location|address|direction|park/.test(m)) return 'We\'re at 4132 Shore Line Dr, Earth City, MO 63045. Easy highway access and plenty of parking. <a href="https://maps.google.com/?q=4132+Shore+Line+Dr+Earth+City+MO" target="_blank" rel="noopener">Get directions →</a>';
+  if (/kenny|coach|trainer|who/.test(m)) return 'Coach Kenny Sims founded The Flex Facility in 2013. He\'s an International Pro Elite bodybuilder who trains athletes from youth through college. His coaching is results-first and built on real science.';
+  if (/bring|wear|expect|happen|prepare/.test(m)) return 'Wear athletic clothes and training shoes, and bring water. The assessment is about 60 minutes: a movement and speed screen, strength testing, then Coach Kenny walks you through a plan. Parents are welcome to stay and watch.';
+  if (/cancel|reschedul|change/.test(m)) return 'No problem. Your confirmation text has a link to reschedule or cancel, or just call or text 1-877-515-FLEX.';
+  if (/age|young|old|kid/.test(m)) return 'We train athletes from youth through college, plus adults in our group programs. Athletes under 18 just need a parent or guardian\'s name on the booking.';
+  if (/lifestyle|physique|weight|fat/.test(m)) return 'Physique & Lifestyle is group training for adults focused on body composition, nutrition and sustainable results. Sessions run every day of the week.';
+  if (/bodybuild|compete|stage|posing|show/.test(m)) return 'The Bodybuilding track is for competitors and serious builders: posing, periodization and peak-week coaching from a Pro Elite coach.';
+  return 'Good question! For anything specific, Coach Kenny will cover it in person. You can also call or text <a href="tel:8775153539">1-877-515-FLEX</a>.';
 }
+
+// ===========================================
+// URL PREFILL (?goal= from theflexfacility.com, plus name/phone/email/session)
+// ===========================================
+function setGoal(g) {
+  if (!g) { $('f-goal').value = ''; return; }
+  const gs = $('f-goal');
+  const match = Array.from(gs.options).find(o => o.text.toLowerCase() === g.toLowerCase());
+  if (match) { gs.value = match.value; return; }
+  const o = document.createElement('option'); o.text = g; gs.add(o, 1); gs.value = o.value;
+}
+const qs = new URLSearchParams(location.search);
+const qsSession = qs.get('session') || qs.get('type');
+if (qsSession && SESSIONS[qsSession]) selType = qsSession;
+if (qs.get('goal')) setGoal(qs.get('goal'));
+if (qs.get('name')) $('f-name').value = qs.get('name');
+if (qs.get('phone')) $('f-phone').value = qs.get('phone');
+if (qs.get('email')) $('f-email').value = qs.get('email');
 
 // ===========================================
 // INIT
 // ===========================================
-// Expose functions for onclick handlers in HTML
-window.selectSession = selectSession;
-window.changeMonth = changeMonth;
 window.submitBooking = submitBooking;
 window.addToCalendar = addToCalendar;
 window.toggleAI = toggleAI;
 window.sendMsg = sendMsg;
-window.sq = sq;
+window.goToInfo = goToInfo;
+window.finishBooking = finishBooking;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && aiOpen) toggleAI(false); });
 
-renderInfo('athlete');
-renderCalendar();
-// Fetch one-off date blackouts from the portal and re-render once
-// they arrive. Non-blocking: the calendar shows immediately with
-// hardcoded availability, then blocked dates dim in when ready.
-loadBlockedDates().then(function() { renderCalendar(); });
-setTimeout(function() { document.getElementById('ai-notif').style.display = 'flex'; }, 8000);
+selectSession(selType);
+loadBlockedDates().then(renderDates);
+setTimeout(() => { if (!aiOpen) $('ai-notif').style.display = 'block'; }, 8000);
 
 // ===========================================
 // LOAD SERVICES + SCHEDULES FROM PORTAL
+// Hardcoded SESSIONS above is the fallback; on any failure we keep it.
 // ===========================================
-// The hardcoded SESSIONS object above is the safety-net fallback. In normal
-// operation we replace it with live data from /api/services (sourced from
-// the booking_services + availability_templates tables that the goelev8
-// portal Bookings tab manages). On any fetch / network / parse failure we
-// silently keep the hardcoded SESSIONS so the booking page never breaks —
-// the customer either sees the latest schedule or the last-known-good one.
-//
-// Day labels for the auto-generated infoRows (replaces the hand-written
-// "(closes 7)" annotations that were in the hardcoded version — those were
-// per-service display strings and not derivable from data alone).
-var DAY_LABELS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-
-function buildInfoRowsFromSchedule(schedule) {
-  // schedule is { "0": [{startTime, endTime, displayTime}], ... }
-  // Returns the same { day, time } shape the existing renderInfo expects.
-  return DAY_LABELS.map(function(label, dow) {
-    var slots = schedule[String(dow)];
-    if (!slots || !slots.length) return { day: label, time: null };
-    var first = slots[0];
-    var last  = slots[slots.length - 1];
-    if (slots.length === 1) {
-      return { day: label, time: first.displayTime + ' – ' + formatTime12h(first.endTime) };
-    }
-    return { day: label, time: first.displayTime + ' – ' + formatTime12h(last.endTime) };
-  });
-}
-
-// Local copy of the same 12-hour formatter the API uses, so the widget can
-// generate end times for infoRows without making the SESSIONS shape leak
-// raw 24h strings.
 function formatTime12h(t) {
   if (!t) return '';
-  var parts = String(t).split(':');
-  var h = parseInt(parts[0], 10);
-  var m = parts[1] || '00';
-  var period = h >= 12 ? 'PM' : 'AM';
-  var h12 = h % 12; if (h12 === 0) h12 = 12;
-  return h12 + ':' + m + ' ' + period;
+  const p = String(t).split(':'); const h = parseInt(p[0], 10);
+  const h12 = h % 12 || 12;
+  return h12 + ':' + (p[1] || '00') + ' ' + (h >= 12 ? 'PM' : 'AM');
 }
-
+function buildInfoRowsFromSchedule(schedule) {
+  return DAY_LABELS.map((label, dow) => {
+    const slots = schedule[String(dow)];
+    if (!slots || !slots.length) return { day: label, time: null };
+    return { day: label, time: slots[0].displayTime + ' – ' + formatTime12h(slots[slots.length - 1].endTime) };
+  });
+}
 function applyServicesFromApi(apiServices) {
-  // Mutate SESSIONS in place — keep the same object identity so anywhere
-  // else in the code that already captured a reference still works.
-  // Any keys present in API replace hardcoded; hardcoded keys not in API
-  // are removed (so a service deactivated in the portal disappears from
-  // the calendar).
-  var newKeys = {};
-  for (var i = 0; i < apiServices.length; i++) {
-    var s = apiServices[i];
-    if (!s.key) continue;
+  const newKeys = {};
+  apiServices.forEach(s => {
+    if (!s.key) return;
     newKeys[s.key] = true;
+    const sched = {};
+    const apiSched = s.schedule || {};
+    Object.keys(apiSched).forEach(dow => { sched[parseInt(dow, 10)] = apiSched[dow].map(slot => ({ time: slot.displayTime, booked: 0 })); });
     SESSIONS[s.key] = {
-      name:        s.name,
-      fullName:    s.fullName,
-      btnText:     s.btnText || 'CONFIRM SESSION',
-      maxPerSlot:  s.maxPerSlot, // null = unlimited (matches existing convention)
-      infoTitle:   s.infoTitle,
-      infoNote:    s.infoNote,
-      // Convert API schedule shape to the { dow: [{ time, booked }] }
-      // shape the existing renderCalendar / pickDate code reads. `booked`
-      // is a placeholder that fetchSlotCounts() overwrites from /api/slots.
-      schedule:    (function() {
-        var sched = {};
-        var apiSched = s.schedule || {};
-        for (var dow in apiSched) {
-          if (!Object.prototype.hasOwnProperty.call(apiSched, dow)) continue;
-          sched[parseInt(dow, 10)] = apiSched[dow].map(function(slot) {
-            return { time: slot.displayTime, booked: 0 };
-          });
-        }
-        return sched;
-      })(),
-      infoRows:    buildInfoRowsFromSchedule(s.schedule || {})
+      name: s.name, fullName: s.fullName, btnText: s.btnText || 'CONFIRM SESSION',
+      maxPerSlot: s.maxPerSlot, infoTitle: s.infoTitle, infoNote: s.infoNote,
+      schedule: sched, infoRows: buildInfoRowsFromSchedule(apiSched)
     };
-  }
-  // Drop hardcoded sessions that the API doesn't return (deactivated).
-  for (var key in SESSIONS) {
-    if (!Object.prototype.hasOwnProperty.call(SESSIONS, key)) continue;
-    if (!newKeys[key]) delete SESSIONS[key];
-  }
-  // If the currently selected session was removed, fall back to the first
-  // remaining one so the UI doesn't render against an empty SESSIONS[selType].
-  if (!SESSIONS[selType]) {
-    var firstKey = Object.keys(SESSIONS)[0];
-    if (firstKey) selType = firstKey;
-  }
+  });
+  Object.keys(SESSIONS).forEach(k => { if (!newKeys[k]) delete SESSIONS[k]; });
+  if (!SESSIONS[selType]) selType = Object.keys(SESSIONS)[0];
 }
-
-(function loadServicesFromApi() {
-  fetch('/api/services')
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-      if (!res || !res.success || !Array.isArray(res.services) || !res.services.length) {
-        console.log('[services] API returned no services, keeping hardcoded fallback');
-        return;
-      }
-      console.log('[services] Loaded', res.services.length, 'services from portal');
-      applyServicesFromApi(res.services);
-      // Re-render UI with the new data. selectSession() handles both
-      // info panel + calendar grid; calling it with the current selType
-      // (or a new one if the previous selection was removed) is the
-      // safest way to refresh everything in one shot.
-      try {
-        renderInfo(selType);
-        renderCalendar();
-      } catch (renderErr) {
-        console.error('[services] Re-render after API load failed:', renderErr);
-      }
-    })
-    .catch(function(err) {
-      console.log('[services] Fetch failed, keeping hardcoded fallback:', err && err.message);
-    });
-})();
+fetch('/api/services').then(r => r.json()).then(res => {
+  if (!res || !res.success || !Array.isArray(res.services) || !res.services.length) return;
+  applyServicesFromApi(res.services);
+  try { selectSession(selType); } catch (e) { console.error('[services] re-render failed:', e); }
+}).catch(err => console.log('[services] keeping fallback:', err && err.message));
 
 // ── Supabase Realtime: live slot updates ──
-// When Coach Kenny changes availability in the portal, slots update here instantly
 try {
-  var supabaseUrl = 'https://bnkoqybkmwtrlorhowyv.supabase.co';
-  var supabaseAnonKey = (document.querySelector('meta[name="supabase-anon-key"]') || {}).content || '';
+  const supabaseUrl = 'https://bnkoqybkmwtrlorhowyv.supabase.co';
+  const supabaseAnonKey = (document.querySelector('meta[name="supabase-anon-key"]') || {}).content || '';
   if (typeof supabase !== 'undefined' && supabaseAnonKey) {
-    var sbClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
-    sbClient
+    supabase.createClient(supabaseUrl, supabaseAnonKey)
       .channel('time_slots_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'time_slots' }, function(payload) {
-        console.log('Realtime slot update:', payload);
-        // Re-fetch slot counts to reflect changes
-        fetchSlotCounts();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'time_slots' }, () => { resetCounts(); loadCounts(selType).then(renderDates); })
       .subscribe();
-    console.log('Supabase Realtime subscribed to time_slots');
   }
-} catch (rtErr) {
-  console.log('Realtime subscription not available:', rtErr.message);
-}
+} catch (rtErr) { console.log('Realtime subscription not available:', rtErr.message); }
 
 }); // end DOMContentLoaded
 </script>
