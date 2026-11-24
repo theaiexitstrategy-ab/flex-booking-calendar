@@ -1,6 +1,7 @@
 var supabaseAdmin = require('../lib/supabaseAdmin')
 var smsUtils = require('./utils/sendSms')
 var sendSms = smsUtils.sendSms
+var bookingWindow = require('./utils/bookingWindow')
 
 // Same wall-clock-in-tz parser as api/bookings.js. Avoids the
 // Vercel-UTC default that caused starts_at to lose 5 hours when
@@ -60,6 +61,14 @@ module.exports = async function handler(req, res) {
 
     if (!booking_id || !new_date || !new_time) {
       return res.status(400).json({ error: 'booking_id, new_date, and new_time are required' })
+    }
+
+    // Reschedules obey the same no-same-day rule as new bookings.
+    if (bookingWindow.isTooSoon(new_date)) {
+      return res.status(400).json({
+        success: false,
+        error: bookingWindow.TOO_SOON_MESSAGE
+      })
     }
 
     var fetchResult = await supabaseAdmin
