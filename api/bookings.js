@@ -2,6 +2,7 @@ var supabaseAdmin = require('../lib/supabaseAdmin')
 var smsUtils = require('./utils/sendSms')
 var sendSms = smsUtils.sendSms
 var formatE164 = smsUtils.formatE164
+var bookingWindow = require('./utils/bookingWindow')
 
 var FLEX_FACILITY_SLUG = process.env.NEXT_PUBLIC_FLEX_FACILITY_SLUG || 'flex-facility'
 
@@ -78,6 +79,15 @@ module.exports = async function handler(req, res) {
     var time = body.time || ''
     var firstName = name.split(' ')[0] || ''
     var phoneE164 = formatE164(phone)
+
+    // No same-day bookings. The calendar already greys today out, but a
+    // stale tab or a direct POST would otherwise sail straight through.
+    if (bookingWindow.isTooSoon(date)) {
+      return res.status(400).json({
+        success: false,
+        error: bookingWindow.TOO_SOON_MESSAGE
+      })
+    }
 
     // Look up flex-facility client_id
     var clientId = null

@@ -172,6 +172,18 @@ var _now = new Date();
 curMonth = _now.getMonth();
 curYear = _now.getFullYear();
 
+// Same no-same-day rule as the public booking calendar (index.html).
+// MIN_LEAD_DAYS = 1 → earliest reschedule target is tomorrow, Central time.
+var CAL_TZ = 'America/Chicago';
+var MIN_LEAD_DAYS = 1;
+
+function todayInCalTz() {
+  var p = new Intl.DateTimeFormat('en-CA', {
+    timeZone: CAL_TZ, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date()).split('-');
+  return new Date(+p[0], +p[1] - 1, +p[2]);
+}
+
 if (!bookingId) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('error').style.display = 'block';
@@ -286,7 +298,8 @@ function renderCalendar() {
   document.getElementById('cal-month-label').textContent = MO[curMonth] + ' ' + curYear;
   var firstDay = new Date(curYear, curMonth, 1).getDay();
   var daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
-  var today = new Date(); today.setHours(0,0,0,0);
+  var today = todayInCalTz();
+  var minDate = todayInCalTz(); minDate.setDate(minDate.getDate() + MIN_LEAD_DAYS);
   var sched = getSchedule().schedule;
   var grid = document.getElementById('cal-days');
   grid.innerHTML = '';
@@ -306,6 +319,11 @@ function renderCalendar() {
 
     if (isPast) {
       cell.classList.add('past');
+    } else if (dt < minDate) {
+      // Inside the lead-time window — no same-day reschedules.
+      cell.classList.add('no-slots');
+      if (isToday) cell.classList.add('today');
+      cell.title = 'Same-day booking unavailable — please pick a later date';
     } else if (slots.length > 0) {
       cell.classList.add('has-slots');
       if (isToday) cell.classList.add('today');
